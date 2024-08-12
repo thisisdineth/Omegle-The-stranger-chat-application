@@ -3,46 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Politacal Thought</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Twitter Clone - Home</title>
+    <link rel="stylesheet" href="stylesofindex.css">
 </head>
 <body>
     <header>
-        <div class="container">
+        <div class="header-left">
             <img src="img/logo.png" alt="Logo" class="logo">
             <h1>Twitter Clone</h1>
-            <nav>
-                <a href="profile.html">Profile</a> <!-- Add this link -->
-                <button id="logout-button">Logout</button>
-            </nav>
         </div>
+        <nav>
+            <a href="profile.html">Profile</a>
+            <button id="logout-button">Logout</button>
+        </nav>
     </header>
-    <main class="container">
-        <div id="profile-section">
-            <h2>Your Profile</h2>
-            <img id="profile-pic" src="default-profile.png" alt="Profile Picture">
-            <form id="profile-form">
-                <input type="file" id="profile-picture" accept="image/*">
-                <button type="submit">Upload Profile Picture</button>
-            </form>
-        </div>
-        <div id="tweet-section">
-            <h2>Create a Tweet</h2>
-            <form id="tweet-form">
-                <textarea id="tweet-content" placeholder="What's happening?" required></textarea>
-                <button type="submit">Tweet</button>
-            </form>
-        </div>
-        <div id="tweets-list">
-            <h2>Recent Tweets</h2>
-            <ul id="tweets">
-                <!-- Tweets will be dynamically populated here -->
-            </ul>
-        </div>
-    </main>
-    <footer class="container">
+    <div class="main-container">
+        <aside class="sidebar">
+            <div id="profile-section">
+                <img id="profile-pic" src="default-profile.png" alt="Profile Picture">
+                <h2>Your Profile</h2>
+            </div>
+        </aside>
+        <main class="content">
+            <div id="tweet-section">
+                <h2>Start a discussion ask questions or reply others </h2>
+                <hr>
+                <form id="tweet-form">
+                    <textarea id="tweet-content" placeholder="What's happening?" required></textarea>
+                    <button type="submit">Tweet</button>
+                </form>
+            </div>
+            <div id="tweets-list">
+                <h2>Recent Tweets</h2>
+                <ul id="tweets">
+                    <!-- Tweets will be dynamically populated here -->
+                </ul>
+            </div>
+        </main>
+    </div>
+    <footer>
         <p>&copy; 2024 Twitter Clone - Created by Dineth Gunawardana</p>
-        <button id="logout-button">Logout</button>
     </footer>
     <script type="module" src="app.js"></script>
 </body>

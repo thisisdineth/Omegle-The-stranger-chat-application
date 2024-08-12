@@ -1,0 +1,184 @@
+/* stylesofindex.css */
+body {
+    font-family: Arial, sans-serif;
+    background: linear-gradient(to right, #00bcd4, #009688);
+    margin: 0;
+    padding: 0;
+    color: #333;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+header {
+    background-color: #00796b;
+    padding: 10px 20px;
+    color: #fff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+}
+
+header .logo {
+    width: 40px;
+    margin-right: 10px;
+}
+
+header h1 {
+    font-size: 24px;
+    margin: 0;
+}
+
+header nav {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+header nav a, #logout-button {
+    color: #fff;
+    text-decoration: none;
+    font-size: 18px;
+    padding: 5px 10px;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+    background-color: #004d40;
+}
+
+header nav a:hover, #logout-button:hover {
+    background-color: #003d33;
+}
+
+.main-container {
+    display: flex;
+    flex: 1;
+    padding: 20px;
+}
+
+.sidebar {
+    width: 250px;
+    margin-right: 20px;
+}
+
+#profile-section {
+    text-align: center;
+}
+
+#profile-pic {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-bottom: 10px;
+}
+
+.content {
+    flex: 1;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+h2 {
+    color: #00796b;
+    margin-bottom: 10px;
+}
+
+hr {
+    border: 1px solid #ccc;
+    margin: 20px 0;
+}
+
+.tweet-button {
+    padding: 10px 20px;
+    background-color: #00796b;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+    display: block;
+    margin-bottom: 20px;
+}
+
+.tweet-button:hover {
+    background-color: #004d40;
+}
+
+#tweet-content {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+    margin-bottom: 10px;
+}
+
+button[type="submit"] {
+    padding: 10px;
+    background-color: #00796b;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+}
+
+button[type="submit"]:hover {
+    background-color: #004d40;
+}
+
+#tweets-list ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+#tweets-list li {
+    background: #f9f9f9;
+    margin: 10px 0;
+    padding: 15px;
+    border-radius: 5px;
+}
+
+.tweet-author {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.tweet-actions {
+    margin-top: 10px;
+    display: flex;
+    justify-content: space-between;
+}
+
+.tweet-actions button {
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    color: #009688;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.tweet-actions button:hover {
+    text-decoration: underline;
+}
+
+footer {
+    text-align: center;
+    padding: 10px 0;
+    background-color: #00796b;
+    color: #fff;
+    position: relative;
+    width: 100%;
+}
