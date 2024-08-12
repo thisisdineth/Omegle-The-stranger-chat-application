@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Twitter Clone</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome to Twitter Clone</h1>
+        <div id="profile-section">
+            <h2>Your Profile</h2>
+            <img id="profile-pic" src="default-profile.png" alt="Profile Picture">
+            <form id="profile-form">
+                <input type="file" id="profile-picture" accept="image/*">
+                <button type="submit">Upload Profile Picture</button>
+            </form>
+        </div>
+        <div id="tweet-section">
+            <h2>Create a Tweet</h2>
+            <form id="tweet-form">
+                <textarea id="tweet-content" placeholder="What's happening?" required></textarea>
+                <button type="submit">Tweet</button>
+            </form>
+        </div>
+        <div id="tweets-list">
+            <h2>Recent Tweets</h2>
+            <ul id="tweets">
+                <!-- Tweets will be dynamically populated here -->
+            </ul>
+        </div>
+        <button id="logout-button">Logout</button>
+    </div>
+    <script type="module" src="app.js"></script>
+</body>
+</html>
