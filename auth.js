@@ -70,3 +70,20 @@ onAuthStateChanged(auth, (user) => {
         // window.location.href = "signup.html";
     }
 });
+document.addEventListener('DOMContentLoaded', () => {
+    const switchBtn = document.getElementById('switch-btn');
+    const signupContainer = document.getElementById('signup-container');
+    const signinContainer = document.getElementById('signin-container');
+
+    switchBtn.addEventListener('click', () => {
+        if (signupContainer.style.display === 'none') {
+            signupContainer.style.display = 'block';
+            signinContainer.style.display = 'none';
+            switchBtn.textContent = 'Already have an Account?';
+        } else {
+            signupContainer.style.display = 'none';
+            signinContainer.style.display = 'block';
+            switchBtn.textContent = 'Create an Account';
+        }
+    });
+});

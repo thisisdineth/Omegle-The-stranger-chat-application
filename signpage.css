@@ -1,0 +1,174 @@
+/* signpage.css */
+body {
+    font-family: Arial, sans-serif;
+    background: linear-gradient(to right, #00bcd4, #009688);
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+header {
+    background: #009688;
+    color: white;
+    padding: 20px;
+    text-align: center;
+    position: relative;
+}
+
+.logo-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+}
+
+.logo {
+    height: 50px;
+    width: auto;
+}
+
+.app-name {
+    font-size: 2em;
+    margin: 0;
+}
+
+#switch-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: #00796b;
+    border: none;
+    border-radius: 4px;
+    color: white;
+    cursor: pointer;
+    padding: 10px;
+    transition: background 0.3s ease, transform 0.3s ease;
+}
+
+#switch-btn:hover {
+    background: #004d40;
+}
+
+#switch-btn:active {
+    transform: scale(0.98);
+}
+
+.container {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+#auth-section {
+    display: flex;
+    width: 100%;
+    max-width: 1200px;
+    position: relative;
+}
+
+.form-container {
+    width: 45%;
+    display: none;
+    padding: 20px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+#signup-container {
+    display: block;
+}
+
+h2 {
+    color: #009688;
+    font-size: 1.5em;
+    margin: 0 0 20px 0;
+    text-align: center;
+    transition: color 0.3s ease;
+}
+
+h2:hover {
+    color: #00796b;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    width: 100%;
+}
+
+input {
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 10px;
+    font-size: 1em;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+input:focus {
+    border-color: #009688;
+    box-shadow: 0 0 5px rgba(0, 150, 136, 0.3);
+    outline: none;
+}
+
+button {
+    background: #009688;
+    border: none;
+    border-radius: 4px;
+    color: white;
+    cursor: pointer;
+    font-size: 1em;
+    padding: 10px;
+    transition: background 0.3s ease, transform 0.3s ease;
+}
+
+button:hover {
+    background: #00796b;
+}
+
+button:active {
+    transform: scale(0.98);
+}
+
+footer {
+    background: #009688;
+    color: white;
+    text-align: center;
+    padding: 10px;
+    position: relative;
+    bottom: 0;
+}
+
+.image-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 45%;
+    padding: 20px;
+}
+
+.auth-image {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+}
+
+@media (max-width: 600px) {
+    #auth-section {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .form-container {
+        width: 90%;
+    }
+
+    .image-container {
+        width: 90%;
+    }
+}
