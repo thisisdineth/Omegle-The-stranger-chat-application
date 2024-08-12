@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
-import { getDatabase, ref, push, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
+import { getDatabase, ref, push, set, onValue, remove, update } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
 import { getStorage, ref as storageRef, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-storage.js";
 
 // Initialize Firebase
@@ -21,12 +21,10 @@ const storage = getStorage(app);
 // Auth State Listener
 onAuthStateChanged(auth, (user) => {
     if (user) {
-        console.log("User is signed in:", user);
         loadTweets();
         loadProfilePicture();
     } else {
-        console.log("No user is signed in.");
-        window.location.href = "signup.html"; // Redirect to sign-in/sign-up page
+        window.location.href = "signup.html"; // Redirect to sign-in/sign-up page if not authenticated
     }
 });
 
@@ -35,15 +33,21 @@ document.getElementById('tweet-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const content = document.getElementById('tweet-content').value;
 
+    if (content.trim() === "") {
+        alert("Tweet cannot be empty!");
+        return;
+    }
+
     const tweetRef = push(ref(db, 'tweets/'));
     await set(tweetRef, {
         uid: auth.currentUser.uid,
+        author: auth.currentUser.displayName || auth.currentUser.email,
         content: content,
         timestamp: Date.now(),
         likes: 0
     });
 
-    document.getElementById('tweet-content').value = '';
+    document.getElementById('tweet-content').value = ''; // Clear the textarea after posting
 });
 
 // Load Tweets
@@ -52,14 +56,52 @@ function loadTweets() {
     onValue(tweetsRef, (snapshot) => {
         const tweetsList = document.getElementById('tweets');
         tweetsList.innerHTML = ''; // Clear existing tweets
+
         snapshot.forEach((childSnapshot) => {
             const tweet = childSnapshot.val();
+            const tweetId = childSnapshot.key;
             const li = document.createElement('li');
-            li.textContent = tweet.content;
+
+            li.innerHTML = `
+                <div class="tweet-author">${tweet.author}</div>
+                <div class="tweet-content">${tweet.content}</div>
+                <div class="tweet-actions">
+                    <button onclick="likeTweet('${tweetId}')">Like (${tweet.likes})</button>
+                    <button onclick="replyTweet('${tweetId}', '${tweet.author}')">Reply</button>
+                    <button onclick="deleteTweet('${tweetId}')">Delete</button>
+                </div>
+            `;
+
             tweetsList.appendChild(li);
         });
     });
 }
+
+// Like Tweet
+window.likeTweet = async function (tweetId) {
+    const tweetRef = ref(db, 'tweets/' + tweetId);
+    const snapshot = await onValue(tweetRef, (snapshot) => {
+        const tweet = snapshot.val();
+        update(tweetRef, { likes: tweet.likes + 1 });
+    });
+};
+
+// Reply Tweet (For simplicity, just logs a reply in the console)
+window.replyTweet = function (tweetId, author) {
+    const replyContent = prompt(`Reply to ${author}:`);
+    if (replyContent) {
+        console.log(`Reply to tweet ${tweetId}: ${replyContent}`);
+        // Implement further reply functionality (e.g., storing replies in the database) as needed
+    }
+};
+
+// Delete Tweet
+window.deleteTweet = function (tweetId) {
+    const confirmDelete = confirm("Are you sure you want to delete this tweet?");
+    if (confirmDelete) {
+        remove(ref(db, 'tweets/' + tweetId));
+    }
+};
 
 // Upload Profile Picture
 document.getElementById('profile-form').addEventListener('submit', async (e) => {
@@ -80,6 +122,9 @@ document.getElementById('profile-form').addEventListener('submit', async (e) => 
             async () => {
                 const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
                 document.getElementById('profile-pic').src = downloadURL; // Update profile picture
+                await update(ref(db, 'users/' + auth.currentUser.uid), {
+                    profilePicture: downloadURL
+                });
             }
         );
     } else {
@@ -103,7 +148,6 @@ function loadProfilePicture() {
 // Logout
 document.getElementById('logout-button').addEventListener('click', () => {
     signOut(auth).then(() => {
-        console.log("User signed out.");
         window.location.href = "signup.html"; // Redirect to sign-in/sign-up page
     }).catch((error) => {
         console.error("Error signing out:", error.message);

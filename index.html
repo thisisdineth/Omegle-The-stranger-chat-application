@@ -3,12 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Twitter Clone</title>
+    <title>Politacal Thought</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="container">
-        <h1>Welcome to Twitter Clone</h1>
+    <header>
+        <div class="container">
+            <img src="img/logo.png" alt="Logo" class="logo">
+            <h1>Twitter Clone</h1>
+            <nav>
+                <a href="profile.html">Profile</a> <!-- Add this link -->
+                <button id="logout-button">Logout</button>
+            </nav>
+        </div>
+    </header>
+    <main class="container">
         <div id="profile-section">
             <h2>Your Profile</h2>
             <img id="profile-pic" src="default-profile.png" alt="Profile Picture">
@@ -30,8 +39,11 @@
                 <!-- Tweets will be dynamically populated here -->
             </ul>
         </div>
+    </main>
+    <footer class="container">
+        <p>&copy; 2024 Twitter Clone - Created by Dineth Gunawardana</p>
         <button id="logout-button">Logout</button>
-    </div>
+    </footer>
     <script type="module" src="app.js"></script>
 </body>
 </html>

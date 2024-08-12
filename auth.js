@@ -1,5 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
 
 // Initialize Firebase
 const firebaseConfig = {
@@ -13,6 +14,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const db = getDatabase(app);
 
 // Sign Up Function
 document.getElementById('signup-form').addEventListener('submit', async (e) => {
@@ -23,7 +25,17 @@ document.getElementById('signup-form').addEventListener('submit', async (e) => {
     const password = document.getElementById('signup-password').value;
 
     try {
+        // Create user with email and password
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+
+        // Save additional user data in the database
+        await set(ref(db, 'users/' + user.uid), {
+            name: name,
+            birthday: birthday,
+            email: email
+        });
+
         alert("Sign Up Successful!");
         window.location.href = "index.html"; // Redirect to the main page after sign-up
     } catch (error) {
@@ -38,10 +50,23 @@ document.getElementById('signin-form').addEventListener('submit', async (e) => {
     const password = document.getElementById('signin-password').value;
 
     try {
+        // Sign in user with email and password
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         alert("Sign In Successful!");
         window.location.href = "index.html"; // Redirect to the main page after sign-in
     } catch (error) {
         console.error("Sign In Error: ", error.message);
+    }
+});
+
+// Auth State Change Listener
+onAuthStateChanged(auth, (user) => {
+    if (user) {
+        console.log("User is signed in:", user);
+        // You can add additional code here to handle user-specific tasks when they are signed in
+    } else {
+        console.log("No user is signed in.");
+        // Optionally, you can redirect to the sign-in page if no user is signed in
+        // window.location.href = "signup.html";
     }
 });
