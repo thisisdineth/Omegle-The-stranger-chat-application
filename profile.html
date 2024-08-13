@@ -3,29 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profile</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Profile List</title>
+    <link rel="stylesheet" href="profile.css">
 </head>
 <body>
     <header>
         <div class="container">
-            <a href="index.html"><img src="logo.png" alt="Logo" class="logo"></a>
-            <h1>Your Profile</h1>
+            <div class="header-content">
+                <a href="index.html" class="logo-container">
+                    <img src="logo.png" alt="Logo" class="logo">
+                    <span class="app-name">Twitter Clone</span>
+                </a>
+                <button id="home-button">Go Back to Home</button>
+            </div>
         </div>
     </header>
     <main class="container">
-        <div id="profile-section">
-            <h2>Profile Information</h2>
-            <img id="profile-pic" src="default-profile.png" alt="Profile Picture">
-            <form id="profile-form">
-                <label for="profile-picture">Change Profile Picture</label>
-                <input type="file" id="profile-picture" accept="image/*">
-                <label for="profile-name">Name</label>
-                <input type="text" id="profile-name" placeholder="Full Name" required>
-                <label for="profile-birthday">Birthday</label>
-                <input type="date" id="profile-birthday" required>
-                <button type="submit">Update Profile</button>
-            </form>
+        <div id="search-section">
+            <input type="text" id="search-bar" placeholder="Search profiles...">
+        </div>
+        <div id="profiles-section">
+            <!-- User profiles will be dynamically populated here -->
         </div>
     </main>
     <footer class="container">

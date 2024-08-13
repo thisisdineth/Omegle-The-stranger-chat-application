@@ -1,7 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-import { getAuth, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
-import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
-import { getStorage, ref as storageRef, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-storage.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+import { getDatabase, ref, get, child } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
 
 // Initialize Firebase
 const firebaseConfig = {
@@ -16,88 +15,63 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getDatabase(app);
-const storage = getStorage(app);
 
-// Auth State Listener to load profile data
+// Auth State Listener to ensure user is authenticated
 onAuthStateChanged(auth, (user) => {
-    if (user) {
-        loadProfile(user);
-    } else {
+    if (!user) {
         window.location.href = "signup.html"; // Redirect to sign-in/sign-up page if not authenticated
     }
 });
 
-// Load Profile Data
-async function loadProfile(user) {
-    const userRef = ref(db, 'users/' + user.uid);
-    const snapshot = await get(userRef);
+// Load and display all user profiles
+async function loadProfiles() {
+    const profilesSection = document.getElementById('profiles-section');
+    profilesSection.innerHTML = ''; // Clear previous profiles
+
+    const usersRef = ref(db, 'users');
+    const snapshot = await get(usersRef);
 
     if (snapshot.exists()) {
-        const userData = snapshot.val();
-        document.getElementById('profile-name').value = userData.name || '';
-        document.getElementById('profile-birthday').value = userData.birthday || '';
+        const usersData = snapshot.val();
+        for (const userId in usersData) {
+            const userData = usersData[userId];
+            const profileDiv = document.createElement('div');
+            profileDiv.className = 'profile';
 
-        // Load profile picture if available
-        if (userData.profilePicture) {
-            document.getElementById('profile-pic').src = userData.profilePicture;
+            profileDiv.innerHTML = `
+                <img src="${userData.profilePicture || 'default-profile.png'}" alt="${userData.name}" class="profile-pic">
+                <div class="profile-info">
+                    <h3>${userData.name || 'Unknown Name'}</h3>
+                    <p>@${userData.username || 'Unknown Username'}</p>
+                </div>
+            `;
+            profilesSection.appendChild(profileDiv);
         }
     } else {
-        console.log("No profile data available.");
+        profilesSection.innerHTML = '<p>No profiles available.</p>';
     }
 }
 
-// Update Profile
-document.getElementById('profile-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
+// Search functionality
+document.getElementById('search-bar').addEventListener('input', (e) => {
+    const query = e.target.value.toLowerCase();
+    const profiles = document.querySelectorAll('.profile');
 
-    const name = document.getElementById('profile-name').value;
-    const birthday = document.getElementById('profile-birthday').value;
-    const user = auth.currentUser;
-
-    if (user) {
-        const userRef = ref(db, 'users/' + user.uid);
-        await update(userRef, {
-            name: name,
-            birthday: birthday,
-        });
-
-        // Update profile name in authentication
-        await updateProfile(user, { displayName: name });
-
-        alert("Profile updated successfully!");
-    }
+    profiles.forEach(profile => {
+        const name = profile.querySelector('.profile-info h3').textContent.toLowerCase();
+        const username = profile.querySelector('.profile-info p').textContent.toLowerCase();
+        if (name.includes(query) || username.includes(query)) {
+            profile.style.display = 'block';
+        } else {
+            profile.style.display = 'none';
+        }
+    });
 });
 
-// Profile Picture Upload
-document.getElementById('profile-picture').addEventListener('change', async (e) => {
-    const file = e.target.files[0];
+// Initial profile load
+loadProfiles();
 
-    if (file && file.size <= 2 * 1024 * 1024) { // Check file size
-        const user = auth.currentUser;
-        const storageReference = storageRef(storage, 'profile_pictures/' + user.uid);
-        const uploadTask = uploadBytesResumable(storageReference, file);
-
-        uploadTask.on('state_changed', 
-            (snapshot) => {
-                // Optional: Add progress monitoring here
-            }, 
-            (error) => {
-                console.error("Error uploading file:", error.message);
-            }, 
-            async () => {
-                const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-                document.getElementById('profile-pic').src = downloadURL; // Update profile picture
-                await update(ref(db, 'users/' + user.uid), {
-                    profilePicture: downloadURL
-                });
-            }
-        );
-    } else {
-        alert("Please upload a file less than 2MB.");
-    }
-});
-
-// Logout
+// Logout functionality
 document.getElementById('logout-button').addEventListener('click', () => {
     signOut(auth).then(() => {
         window.location.href = "signup.html"; // Redirect to sign-in/sign-up page
