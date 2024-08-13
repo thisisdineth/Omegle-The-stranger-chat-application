@@ -138,6 +138,7 @@ button:active {
 #google-signin,
 #facebook-signup,
 #facebook-signin {
+    color: black;
     background: white;
     border: 1px solid #ddd;
     border-radius: 4px;
