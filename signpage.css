@@ -1,6 +1,6 @@
 body {
     font-family: Arial, sans-serif;
-    background: linear-gradient(to right, #00bcd4, #009688);
+    background: linear-gradient(to right, #e1fcff, #f6fefe);
     margin: 0;
     padding: 0;
     display: flex;
@@ -9,8 +9,8 @@ body {
 }
 
 header {
-    background: #009688;
-    color: white;
+    background: #ffffff;
+    color: rgb(0, 0, 0);
     padding: 20px;
     text-align: center;
     position: relative;
@@ -37,21 +37,49 @@ header {
     position: absolute;
     top: 20px;
     right: 20px;
-    background: #00796b;
-    border: none;
+    background: #cff3ff;
+    border: 1pc;
     border-radius: 4px;
-    color: white;
+    border-color: black;
+    color: rgb(0, 0, 0);
     cursor: pointer;
     padding: 10px;
     transition: background 0.3s ease, transform 0.3s ease;
 }
 
 #switch-btn:hover {
-    background: #004d40;
+    background: #aef1ed;
 }
 
 #switch-btn:active {
     transform: scale(0.98);
+}
+
+/* Mobile-specific styles */
+@media (max-width: 600px) {
+    header {
+        padding: 10px;
+        text-align: center;
+    }
+
+    #switch-btn {
+        position: static; /* Move the button from absolute to static positioning */
+        margin-top: 20px; /* Space above the switch button */
+        margin-bottom: 20px; /* Space below the switch button */
+    }
+
+    #auth-section {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .form-container {
+        width: 90%;
+    }
+
+    .image-container {
+        width: 90%;
+    }
 }
 
 .container {
@@ -83,7 +111,7 @@ header {
 }
 
 h2 {
-    color: #009688;
+    color: #000000;
     font-size: 1.5em;
     margin: 0 0 20px 0;
     text-align: center;
@@ -91,7 +119,7 @@ h2 {
 }
 
 h2:hover {
-    color: #00796b;
+    color: #767272;
 }
 
 form {
@@ -110,16 +138,16 @@ input {
 }
 
 input:focus {
-    border-color: #009688;
+    border-color: #ed0404;
     box-shadow: 0 0 5px rgba(0, 150, 136, 0.3);
     outline: none;
 }
 
 button {
-    background: #009688;
-    border: none;
+    background: #ebe7e7;
+    border: 1px;
     border-radius: 4px;
-    color: white;
+    color: rgb(0, 0, 0);
     cursor: pointer;
     font-size: 1em;
     padding: 10px;
@@ -127,13 +155,14 @@ button {
 }
 
 button:hover {
-    background: #00796b;
+    background: #acf5ed;
 }
 
 button:active {
     transform: scale(0.98);
 }
 
+/* Specific styles for social buttons */
 #google-signup,
 #google-signin,
 #facebook-signup,
@@ -155,6 +184,7 @@ button:active {
 #facebook-signin img {
     width: 30px;
     height: 30px;
+    margin-right: 10px;
 }
 
 #google-signup:hover,
@@ -166,7 +196,7 @@ button:active {
 }
 
 footer {
-    background: #009688;
+    background: #144e60;
     color: white;
     text-align: center;
     padding: 10px;
