@@ -1,6 +1,6 @@
 body {
     font-family: Arial, sans-serif;
-    background: linear-gradient(to right, #00bcd4, #009688);
+    background: linear-gradient(to right, #e1fcff, #f6fefe);
     margin: 0;
     padding: 0;
     color: #333;
@@ -10,9 +10,10 @@ body {
 }
 
 header {
-    background-color: #00796b;
+    
+    background: #ffffff;
     padding: 10px 20px;
-    color: #fff;
+    color: #000000;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -85,7 +86,7 @@ header nav a:hover, #logout-button:hover {
 }
 
 h2 {
-    color: #00796b;
+    color: #00245a;
     margin-bottom: 10px;
 }
 
@@ -108,7 +109,7 @@ hr {
 }
 
 .tweet-button:hover {
-    background-color: #004d40;
+    background-color: #24defe;
 }
 
 #tweet-content {
@@ -122,7 +123,7 @@ hr {
 
 button[type="submit"] {
     padding: 10px;
-    background-color: #00796b;
+    background-color: #01156f;
     color: #fff;
     border: none;
     border-radius: 5px;
@@ -132,7 +133,7 @@ button[type="submit"] {
 }
 
 button[type="submit"]:hover {
-    background-color: #004d40;
+    background-color: #007ca6;
 }
 
 #tweets-list ul {
@@ -162,7 +163,7 @@ button[type="submit"]:hover {
     background-color: transparent;
     border: none;
     cursor: pointer;
-    color: #009688;
+    color: #0f034e;
     font-size: 14px;
     display: flex;
     align-items: center;
@@ -176,7 +177,7 @@ button[type="submit"]:hover {
 footer {
     text-align: center;
     padding: 10px 0;
-    background-color: #00796b;
+    background-color: #144e60;
     color: #fff;
     position: relative;
     width: 100%;
