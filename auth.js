@@ -110,20 +110,27 @@ onAuthStateChanged(auth, (user) => {
     }
 });
 
-// Toggle between Sign Up and Sign In
 document.addEventListener('DOMContentLoaded', () => {
     const switchBtn = document.getElementById('switch-btn');
     const signupContainer = document.getElementById('signup-container');
     const signinContainer = document.getElementById('signin-container');
+    const signupImageContainer = document.getElementById('signup-image-container');
+    const signinImageContainer = document.getElementById('signin-image-container');
 
     switchBtn.addEventListener('click', () => {
         if (signupContainer.style.display === 'none') {
+            // Switch to Sign Up
             signupContainer.style.display = 'block';
             signinContainer.style.display = 'none';
-            switchBtn.textContent = 'Already have an Account?';
+            signupImageContainer.style.display = 'block';
+            signinImageContainer.style.display = 'none';
+            switchBtn.textContent = 'Already Have an Account?';
         } else {
+            // Switch to Sign In
             signupContainer.style.display = 'none';
             signinContainer.style.display = 'block';
+            signupImageContainer.style.display = 'none';
+            signinImageContainer.style.display = 'block';
             switchBtn.textContent = 'Create an Account';
         }
     });
