@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+import { getAuth, onAuthStateChanged, signOut, signInWithPopup, GoogleAuthProvider, FacebookAuthProvider } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
 import { getDatabase, ref, push, set, onValue, remove, update, get } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
 import { getStorage, ref as storageRef, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-storage.js";
 
@@ -197,6 +197,32 @@ function loadProfilePicture() {
         });
     }
 }
+
+// Google Sign-In
+document.getElementById('google-signin').addEventListener('click', () => {
+    const provider = new GoogleAuthProvider();
+    signInWithPopup(auth, provider)
+        .then((result) => {
+            console.log("Google Sign-In Successful:", result.user);
+            window.location.href = "index.html";
+        })
+        .catch((error) => {
+            console.error("Google Sign-In Error:", error.message);
+        });
+});
+
+// Facebook Sign-In
+document.getElementById('facebook-signin').addEventListener('click', () => {
+    const provider = new FacebookAuthProvider();
+    signInWithPopup(auth, provider)
+        .then((result) => {
+            console.log("Facebook Sign-In Successful:", result.user);
+            window.location.href = "index.html";
+        })
+        .catch((error) => {
+            console.error("Facebook Sign-In Error:", error.message);
+        });
+});
 
 // Logout
 document.getElementById('logout-button').addEventListener('click', () => {
