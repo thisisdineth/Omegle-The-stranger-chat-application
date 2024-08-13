@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signInWithPopup, GoogleAuthProvider, FacebookAuthProvider } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
-import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
+import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
 
 // Initialize Firebase
 const firebaseConfig = {
@@ -49,8 +49,7 @@ document.getElementById('signin-form').addEventListener('submit', async (e) => {
     const password = document.getElementById('signin-password').value;
 
     try {
-        // Here, we'll assume users might input either username or email
-        let signInMethod = signInWithEmailAndPassword(auth, usernameOrEmail, password);
+        let signInMethod;
 
         if (usernameOrEmail.includes("@")) {
             signInMethod = signInWithEmailAndPassword(auth, usernameOrEmail, password);
@@ -58,7 +57,11 @@ document.getElementById('signin-form').addEventListener('submit', async (e) => {
             // Fetch email based on username from the database
             const snapshot = await get(ref(db, `usernames/${usernameOrEmail}`));
             const email = snapshot.val();
-            signInMethod = signInWithEmailAndPassword(auth, email, password);
+            if (email) {
+                signInMethod = signInWithEmailAndPassword(auth, email, password);
+            } else {
+                throw new Error("Username not found.");
+            }
         }
 
         await signInMethod;
@@ -72,34 +75,54 @@ document.getElementById('signin-form').addEventListener('submit', async (e) => {
 // Sign Up/Sign In with Google
 const googleProvider = new GoogleAuthProvider();
 
-document.getElementById('google-signup').addEventListener('click', () => signInWithPopup(auth, googleProvider).then((result) => {
-    // Add user to the database if they signed up using Google
-    set(ref(db, 'users/' + result.user.uid), {
-        name: result.user.displayName,
-        email: result.user.email
-    });
-    window.location.href = "index.html";
-}).catch((error) => console.error("Google Sign Up Error: ", error.message)));
+document.getElementById('google-signup').addEventListener('click', async () => {
+    try {
+        const result = await signInWithPopup(auth, googleProvider);
+        // Add user to the database if they signed up using Google
+        await set(ref(db, 'users/' + result.user.uid), {
+            name: result.user.displayName,
+            email: result.user.email
+        });
+        window.location.href = "index.html";
+    } catch (error) {
+        console.error("Google Sign Up Error: ", error.message);
+    }
+});
 
-document.getElementById('google-signin').addEventListener('click', () => signInWithPopup(auth, googleProvider).then(() => {
-    window.location.href = "index.html";
-}).catch((error) => console.error("Google Sign In Error: ", error.message)));
+document.getElementById('google-signin').addEventListener('click', async () => {
+    try {
+        await signInWithPopup(auth, googleProvider);
+        window.location.href = "index.html";
+    } catch (error) {
+        console.error("Google Sign In Error: ", error.message);
+    }
+});
 
 // Sign Up/Sign In with Facebook
 const facebookProvider = new FacebookAuthProvider();
 
-document.getElementById('facebook-signup').addEventListener('click', () => signInWithPopup(auth, facebookProvider).then((result) => {
-    // Add user to the database if they signed up using Facebook
-    set(ref(db, 'users/' + result.user.uid), {
-        name: result.user.displayName,
-        email: result.user.email
-    });
-    window.location.href = "index.html";
-}).catch((error) => console.error("Facebook Sign Up Error: ", error.message)));
+document.getElementById('facebook-signup').addEventListener('click', async () => {
+    try {
+        const result = await signInWithPopup(auth, facebookProvider);
+        // Add user to the database if they signed up using Facebook
+        await set(ref(db, 'users/' + result.user.uid), {
+            name: result.user.displayName,
+            email: result.user.email
+        });
+        window.location.href = "index.html";
+    } catch (error) {
+        console.error("Facebook Sign Up Error: ", error.message);
+    }
+});
 
-document.getElementById('facebook-signin').addEventListener('click', () => signInWithPopup(auth, facebookProvider).then(() => {
-    window.location.href = "index.html";
-}).catch((error) => console.error("Facebook Sign In Error: ", error.message)));
+document.getElementById('facebook-signin').addEventListener('click', async () => {
+    try {
+        await signInWithPopup(auth, facebookProvider);
+        window.location.href = "index.html";
+    } catch (error) {
+        console.error("Facebook Sign In Error: ", error.message);
+    }
+});
 
 // Auth State Change Listener
 onAuthStateChanged(auth, (user) => {
