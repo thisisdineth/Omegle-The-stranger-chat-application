@@ -213,7 +213,7 @@ async function loadSuggestedAccounts() {
         let count = 0;
 
         for (const userId in usersData) {
-            if (count >= 2) break; // Display only 5 accounts
+            if (count >= 1) break; // Display only 1 accounts
             const userData = usersData[userId];
 
             const profileDiv = document.createElement('div');
