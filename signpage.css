@@ -135,7 +135,9 @@ button:active {
 }
 
 #google-signup,
-#google-signin {
+#google-signin,
+#facebook-signup,
+#facebook-signin {
     background: white;
     border: 1px solid #ddd;
     border-radius: 4px;
@@ -147,13 +149,17 @@ button:active {
 }
 
 #google-signup img,
-#google-signin img {
+#google-signin img,
+#facebook-signup img,
+#facebook-signin img {
     width: 30px;
     height: 30px;
 }
 
 #google-signup:hover,
-#google-signin:hover {
+#google-signin:hover,
+#facebook-signup:hover,
+#facebook-signin:hover {
     background: #f0f0f0; /* Light gray color for hover effect */
     border-color: #ccc;
 }
