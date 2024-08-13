@@ -1,18 +1,27 @@
 <!DOCTYPE html> <!--index.html-->
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TeenTalk - Home</title>
     <link rel="stylesheet" href="stylesofindex.css">
+    <link rel="apple-touch-icon" sizes="180x180" href="favicon/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon/favicon-16x16.png">
+    <link rel="manifest" href="favicon/site.webmanifest">
+    <link rel="mask-icon" href="favicon/safari-pinned-tab.svg" color="#5bbad5">
+    <meta name="msapplication-TileColor" content="#da532c">
+    <meta name="theme-color" content="#ffffff">
 </head>
+
 <body>
     <header>
         <div class="header-left">
             <img src="img/logo.png" alt="Logo" class="logo">
             <h1>TeenTalk | Home</h1>
         </div>
-      <!--  <nav>
+        <!--  <nav>
             <a href="profile.html">Profile</a>
             <button id="logout-button">Logout</button>
         </nav>-->
@@ -23,20 +32,22 @@
                 <img id="profile-pic" src="default-profile.png" alt="Profile Picture">
                 <h2>My Profile</h2>
             </div>
-            
+
             <div id="sidebar-accounts">
                 <h3>Suggested Accounts</h3>
                 <div id="suggested-accounts">
                     <!-- Profiles will be dynamically populated here -->
                 </div>
             </div>
-        
+
             <button id="search-profile-button" onclick="window.location.href='profile.html'">Search Profiles</button>
         </aside>
-        
+
         <main class="content">
             <div id="tweet-section">
-                <center><h2>Start a discussion ask questions or reply others </h2></center>
+                <center>
+                    <h2>Start a discussion ask questions or reply others </h2>
+                </center>
                 <hr>
                 <form id="tweet-form">
                     <textarea id="tweet-content" placeholder="What's happening?" required></textarea>
@@ -56,4 +67,5 @@
     </footer>
     <script type="module" src="app.js"></script>
 </body>
+
 </html>
