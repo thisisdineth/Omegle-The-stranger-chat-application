@@ -23,6 +23,7 @@ onAuthStateChanged(auth, (user) => {
     if (user) {
         loadTweets();
         loadProfilePicture();
+        loadSuggestedAccounts(); // Load profiles in sidebar
     } else {
         window.location.href = "signup.html";
     }
@@ -127,6 +128,7 @@ window.replyTweet = async function (tweetId) {
     document.getElementById(`reply-content-${tweetId}`).value = ''; 
 };
 
+
 // Load Replies
 function loadReplies(tweetId, replies) {
     const repliesList = document.getElementById(`replies-${tweetId}`);
@@ -195,6 +197,38 @@ function loadProfilePicture() {
         }).catch((error) => {
             console.error("Error loading profile picture:", error.message);
         });
+    }
+}
+
+// Load Suggested Accounts in Sidebar
+async function loadSuggestedAccounts() {
+    const accountsContainer = document.getElementById('suggested-accounts');
+    accountsContainer.innerHTML = ''; // Clear previous accounts
+
+    const usersRef = ref(db, 'users');
+    const snapshot = await get(usersRef);
+
+    if (snapshot.exists()) {
+        const usersData = snapshot.val();
+        let count = 0;
+
+        for (const userId in usersData) {
+            if (count >= 5) break; // Display only 5 accounts
+            const userData = usersData[userId];
+
+            const profileDiv = document.createElement('div');
+            profileDiv.className = 'profile-row';
+
+            profileDiv.innerHTML = `
+                <img src="${userData.profilePicture || 'default-profile.png'}" alt="Profile Picture">
+                <span class="account-name">${userData.name || 'Unknown Name'}</span>
+            `;
+
+            accountsContainer.appendChild(profileDiv);
+            count++;
+        }
+    } else {
+        accountsContainer.innerHTML = '<div>No accounts available.</div>';
     }
 }
 

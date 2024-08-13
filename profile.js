@@ -79,3 +79,4 @@ document.getElementById('logout-button').addEventListener('click', () => {
         console.error("Error signing out:", error.message);
     });
 });
+
