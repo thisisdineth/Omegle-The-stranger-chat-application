@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -31,6 +32,10 @@
             max-width: 300px;
             margin-bottom: 20px;
             animation: fadeIn 2s ease-in-out;
+        }
+
+        .h1text {
+            color: white;
         }
 
         .home-button {
@@ -73,6 +78,7 @@
                 transform: translateY(0);
                 opacity: 1;
             }
+
             100% {
                 transform: translateY(100vh);
                 opacity: 0;
@@ -83,6 +89,7 @@
             from {
                 opacity: 0;
             }
+
             to {
                 opacity: 1;
             }
@@ -101,17 +108,21 @@
         }
     </style>
 </head>
+
 <body>
     <div class="rain"></div>
     <div class="thunder"></div>
     <div class="container">
-        <img src="404.png" alt="404 Image" class="error-image">
+        <img src="img/logo.png" alt="404 Image" class="error-image">
         <button class="home-button" onclick="goHome()">Go Back to Home</button>
+    </div>
+    <div class="h1text">
+        <h1>This page is not created or broken</h1>
     </div>
 
     <script>
         function goHome() {
-            window.location.href = '/';
+            window.location.href = 'index.html';
         }
 
         // Create rain effect
@@ -141,4 +152,5 @@
         setInterval(thunderEffect, 3000);
     </script>
 </body>
+
 </html>
