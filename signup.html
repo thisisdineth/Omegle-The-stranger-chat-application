@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!--signup.html-->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -34,10 +35,6 @@
                     <button id="google-signup">
                         <img src="img/google.webp" alt="Sign Up with Google">
                     </button>
-                    <button id="facebook-signup">
-                        <img src="img/facebook.png" alt="Sign Up with Facebook">
-                        Facebook sign disabled at the moment
-                    </button>
                 </form>
             </div>
             <div class="form-container" id="signin-container">
@@ -49,10 +46,6 @@
                     <button id="google-signin">
                         <img src="img/google.webp" alt="Sign In with Google">
                     </button>
-                    <button id="facebook-signin">
-                        <img src="img/facebook.png" alt="Sign In with Facebook">
-                        Facebook sign disabled at the moment
-                    </button>
                 </form>
             </div>
             <div class="image-container" id="signup-image-container">
@@ -63,6 +56,11 @@
             </div>
         </div>
     </div>
+    <!-- Loading container and message display -->
+    <div id="loading-container" style="display: none;">
+        <img src="img/loader.gif" alt="Loading...">
+    </div>
+    <div id="message-container" style="display: none;"></div>
     <footer>
         <p>&copy; Teentalks. All rights reserved by Dineth Gunawardana</p>
     </footer>

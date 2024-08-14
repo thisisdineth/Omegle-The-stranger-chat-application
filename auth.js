@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signInWithPopup, GoogleAuthProvider, FacebookAuthProvider } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
 import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
 
 // Initialize Firebase
@@ -16,9 +16,29 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getDatabase(app);
 
+// Utility functions
+function showLoader() {
+    document.getElementById('loading-container').style.display = 'block';
+}
+
+function hideLoader() {
+    document.getElementById('loading-container').style.display = 'none';
+}
+
+function showMessage(message, isSuccess) {
+    const messageContainer = document.getElementById('message-container');
+    messageContainer.textContent = message;
+    messageContainer.className = isSuccess ? 'message-success' : 'message-error';
+    messageContainer.style.display = 'block';
+    setTimeout(() => {
+        messageContainer.style.display = 'none';
+    }, 3000);
+}
+
 // Sign Up Function
 document.getElementById('signup-form').addEventListener('submit', async (e) => {
     e.preventDefault();
+    showLoader();
     const name = document.getElementById('signup-name').value;
     const username = document.getElementById('signup-username').value;
     const email = document.getElementById('signup-email').value;
@@ -35,16 +55,20 @@ document.getElementById('signup-form').addEventListener('submit', async (e) => {
             email: email
         });
 
-        alert("Sign Up Successful!");
+        showMessage("Sign Up Successful!", true);
         window.location.href = "index.html"; // Redirect to the main page after sign-up
     } catch (error) {
         console.error("Sign Up Error: ", error.message);
+        showMessage("Sign Up Failed: " + error.message, false);
+    } finally {
+        hideLoader();
     }
 });
 
 // Sign In Function
 document.getElementById('signin-form').addEventListener('submit', async (e) => {
     e.preventDefault();
+    showLoader();
     const usernameOrEmail = document.getElementById('signin-username').value;
     const password = document.getElementById('signin-password').value;
 
@@ -65,10 +89,13 @@ document.getElementById('signin-form').addEventListener('submit', async (e) => {
         }
 
         await signInMethod;
-        alert("Sign In Successful!");
+        showMessage("Sign In Successful!", true);
         window.location.href = "index.html"; // Redirect to the main page after sign-in
     } catch (error) {
         console.error("Sign In Error: ", error.message);
+        showMessage("Sign In Failed: " + error.message, false);
+    } finally {
+        hideLoader();
     }
 });
 
@@ -76,54 +103,45 @@ document.getElementById('signin-form').addEventListener('submit', async (e) => {
 const googleProvider = new GoogleAuthProvider();
 
 document.getElementById('google-signup').addEventListener('click', async () => {
+    showLoader();
     try {
         const result = await signInWithPopup(auth, googleProvider);
-        // Add user to the database if they signed up using Google
-        await set(ref(db, 'users/' + result.user.uid), {
-            name: result.user.displayName,
-            email: result.user.email
-        });
-        window.location.href = "index.html";
+        const user = result.user;
+
+        // Check if user exists in the database
+        const snapshot = await get(ref(db, 'users/' + user.uid));
+        if (!snapshot.exists()) {
+            // Save new user data in the database
+            await set(ref(db, 'users/' + user.uid), {
+                name: user.displayName,
+                username: "", // Prompt for username if needed
+                email: user.email
+            });
+        }
+
+        showMessage("Sign Up with Google Successful!", true);
+        window.location.href = "index.html"; // Redirect to the main page after sign-up
     } catch (error) {
         console.error("Google Sign Up Error: ", error.message);
+        showMessage("Google Sign Up Failed: " + error.message, false);
+    } finally {
+        hideLoader();
     }
 });
 
 document.getElementById('google-signin').addEventListener('click', async () => {
+    showLoader();
     try {
-        await signInWithPopup(auth, googleProvider);
-        window.location.href = "index.html";
+        const result = await signInWithPopup(auth, googleProvider);
+        showMessage("Sign In with Google Successful!", true);
+        window.location.href = "index.html"; // Redirect to the main page after sign-in
     } catch (error) {
         console.error("Google Sign In Error: ", error.message);
+        showMessage("Google Sign In Failed: " + error.message, false);
+    } finally {
+        hideLoader();
     }
 });
-
-// Sign Up/Sign In with Facebook
-const facebookProvider = new FacebookAuthProvider();
-
-document.getElementById('facebook-signup').addEventListener('click', async () => {
-    try {
-        const result = await signInWithPopup(auth, facebookProvider);
-        // Add user to the database if they signed up using Facebook
-        await set(ref(db, 'users/' + result.user.uid), {
-            name: result.user.displayName,
-            email: result.user.email
-        });
-        window.location.href = "index.html";
-    } catch (error) {
-        console.error("Facebook Sign Up Error: ", error.message);
-    }
-});
-
-document.getElementById('facebook-signin').addEventListener('click', async () => {
-    try {
-        await signInWithPopup(auth, facebookProvider);
-        window.location.href = "index.html";
-    } catch (error) {
-        console.error("Facebook Sign In Error: ", error.message);
-    }
-});
-
 // Auth State Change Listener
 onAuthStateChanged(auth, (user) => {
     if (user) {
