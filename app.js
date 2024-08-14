@@ -212,8 +212,13 @@ async function loadSuggestedAccounts() {
         const usersData = snapshot.val();
         let count = 0;
 
+        // Retrieve the list of deleted account IDs from local storage
+        const deletedAccounts = JSON.parse(localStorage.getItem('deletedAccounts')) || [];
+
         for (const userId in usersData) {
             if (count >= 5) break; // Display only 5 accounts
+            if (deletedAccounts.includes(userId)) continue; // Skip deleted accounts
+
             const userData = usersData[userId];
 
             const profileDiv = document.createElement('div');
@@ -231,6 +236,14 @@ async function loadSuggestedAccounts() {
         accountsContainer.innerHTML = '<div>No accounts available.</div>';
     }
 }
+
+// Call the function when the page loads
+window.addEventListener('load', loadSuggestedAccounts);
+
+// Call the function again when the page is reloaded
+window.addEventListener('beforeunload', function() {
+    loadSuggestedAccounts();
+});
 
 // Google Sign-In
 document.getElementById('google-signin').addEventListener('click', () => {
@@ -266,3 +279,4 @@ document.getElementById('logout-button').addEventListener('click', () => {
         console.error("Error signing out:", error.message);
     });
 });
+
