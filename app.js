@@ -216,7 +216,7 @@ async function loadSuggestedAccounts() {
         const deletedAccounts = JSON.parse(localStorage.getItem('deletedAccounts')) || [];
 
         for (const userId in usersData) {
-            if (count >= 5) break; // Display only 5 accounts
+            if (count >= 10) break; // Display only 10 accounts
             if (deletedAccounts.includes(userId)) continue; // Skip deleted accounts
 
             const userData = usersData[userId];
