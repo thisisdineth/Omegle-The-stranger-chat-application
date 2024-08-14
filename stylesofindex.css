@@ -138,6 +138,7 @@ button[type="submit"]:hover {
 
 #tweets-list ul {
     list-style-type: none;
+    color: #02630b;
     padding: 0;
 }
 
@@ -151,6 +152,7 @@ button[type="submit"]:hover {
 .tweet-author {
     font-weight: bold;
     margin-bottom: 5px;
+    color: #01156f;
 }
 
 .tweet-actions {
