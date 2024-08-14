@@ -185,7 +185,7 @@ document.getElementById('forgot-password-link').addEventListener('click', () => 
 
     // Send a password reset email using your email service (e.g. Gmail)
     // Replace 'your-email-service' with your actual email service
-    fetch('https://xclonev2-5106c.firebaseapp.com/__/auth/action?mode=action&oobCode=code', {
+    fetch('Gmail', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
