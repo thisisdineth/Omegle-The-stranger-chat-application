@@ -176,3 +176,35 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
+
+// Add an event listener to the forgot password link
+document.getElementById('forgot-password-link').addEventListener('click', () => {
+    // Show a loading message
+    document.getElementById('loading-container').style.display = 'block';
+    document.getElementById('message-container').style.display = 'none';
+
+    // Send a password reset email using your email service (e.g. Gmail)
+    // Replace 'your-email-service' with your actual email service
+    fetch('https://xclonev2-5106c.firebaseapp.com/__/auth/action?mode=action&oobCode=code', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            email: document.getElementById('signin-username').value
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Show a success message
+        document.getElementById('loading-container').style.display = 'none';
+        document.getElementById('message-container').style.display = 'block';
+        document.getElementById('message-container').innerHTML = 'Password reset link sent to your email!';
+    })
+    .catch(error => {
+        // Show an error message
+        document.getElementById('loading-container').style.display = 'none';
+        document.getElementById('message-container').style.display = 'block';
+        document.getElementById('message-container').innerHTML = 'Error sending password reset link!';
+    });
+});
