@@ -53,51 +53,48 @@ document.getElementById('tweet-form').addEventListener('submit', async (e) => {
     document.getElementById('tweet-content').value = ''; 
 });
 
-// Load Tweets with last added tweet on top and shuffle the rest every 2 hours
-function loadTweets() {
+// Load Tweets with filtering options
+function loadTweets(filterType = 'default') {
     const tweetsRef = ref(db, 'tweets/');
     onValue(tweetsRef, (snapshot) => {
         const tweetsList = document.getElementById('tweets');
         tweetsList.innerHTML = '';
 
         let tweetsArray = [];
-        let latestTweet = null;
 
         snapshot.forEach((childSnapshot) => {
             const tweet = childSnapshot.val();
             const tweetId = childSnapshot.key;
-
-            if (!latestTweet || tweet.timestamp > latestTweet.timestamp) {
-                if (latestTweet) {
-                    tweetsArray.push(latestTweet); // Move the previous latest tweet to the array
-                }
-                latestTweet = { ...tweet, tweetId };
-            } else {
-                tweetsArray.push({ ...tweet, tweetId });
-            }
+            tweetsArray.push({ ...tweet, tweetId });
         });
 
-        const now = Date.now();
-        const lastShuffleTime = localStorage.getItem('lastShuffleTime');
-        const twoHours = 2 * 60 * 60 * 1000; // 2 hours in milliseconds
+        // Apply filter based on filterType
+        if (filterType === 'mostLiked') {
+            tweetsArray.sort((a, b) => b.likes - a.likes);
+        } else if (filterType === 'dateAdded') {
+            tweetsArray.sort((a, b) => b.timestamp - a.timestamp);
+        } else {
+            const now = Date.now();
+            const lastShuffleTime = localStorage.getItem('lastShuffleTime');
+            const twoHours = 2 * 60 * 60 * 1000; // 2 hours in milliseconds
 
-        if (!lastShuffleTime || now - lastShuffleTime > twoHours) {
-            // Shuffle the tweets array except for the latest tweet
-            tweetsArray.sort(() => Math.random() - 0.5);
-            localStorage.setItem('lastShuffleTime', now); // Update last shuffle time
+            if (!lastShuffleTime || now - lastShuffleTime > twoHours) {
+                tweetsArray.sort(() => Math.random() - 0.5);
+                localStorage.setItem('lastShuffleTime', now); // Update last shuffle time
+            }
         }
 
-        // Display the latest tweet on top
-        if (latestTweet) {
-            appendTweetToList(latestTweet, tweetsList);
-        }
-
-        // Display the rest of the tweets
+        // Display tweets
         tweetsArray.forEach((tweet) => {
             appendTweetToList(tweet, tweetsList);
         });
     });
 }
+
+// Filter buttons event listeners
+document.getElementById('filter-default').addEventListener('click', () => loadTweets('default'));
+document.getElementById('filter-most-liked').addEventListener('click', () => loadTweets('mostLiked'));
+document.getElementById('filter-date-added').addEventListener('click', () => loadTweets('dateAdded'));
 
 // Helper function to append a tweet to the list
 function appendTweetToList(tweet, tweetsList) {
@@ -114,7 +111,9 @@ function appendTweetToList(tweet, tweetsList) {
         <div class="tweet-author">${tweet.author} <span class="tweet-timestamp">(${formattedDate} ${formattedTime})</span></div>
         <div class="tweet-content">${tweet.content}</div>
         <div class="tweet-actions">
-            <button onclick="likeTweet('${tweetId}')">Like (${tweet.likes})</button>
+            <button id="like-button-${tweetId}" class="like-button" onclick="likeTweet('${tweetId}')">
+                <i class="fa fa-thumbs-up"></i> Like (${tweet.likes})
+            </button>
             <button onclick="showReplyInput('${tweetId}')">Reply</button>
             ${tweet.uid === auth.currentUser.uid ? `<button onclick="deleteTweet('${tweetId}')">Delete</button>` : ''}
         </div>
@@ -128,6 +127,7 @@ function appendTweetToList(tweet, tweetsList) {
     tweetsList.appendChild(li);
     loadReplies(tweetId, tweet.replies);
 }
+
 // Like/Unlike Tweet
 window.likeTweet = async function (tweetId) {
     const tweetRef = ref(db, 'tweets/' + tweetId);
