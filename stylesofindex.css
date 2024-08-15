@@ -181,8 +181,6 @@ button[type="submit"]:hover {
     color: #777;
     margin-left: 5px;
 }
- 
-
 footer {
     text-align: center;
     padding: 10px 0;
@@ -191,7 +189,6 @@ footer {
     position: relative;
     width: 100%;
 }
-
 /* Sidebar accounts section */
 #sidebar-accounts {
     margin-top: 20px;
@@ -360,3 +357,4 @@ footer {
         font-size: 12px;
     }
 }
+
