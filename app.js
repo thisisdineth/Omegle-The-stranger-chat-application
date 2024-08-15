@@ -276,25 +276,4 @@ document.getElementById('google-signin').addEventListener('click', () => {
         });
 });
 
-// Facebook Sign-In
-document.getElementById('facebook-signin').addEventListener('click', () => {
-    const provider = new FacebookAuthProvider();
-    signInWithPopup(auth, provider)
-        .then((result) => {
-            console.log("Facebook Sign-In Successful:", result.user);
-            window.location.href = "index.html";
-        })
-        .catch((error) => {
-            console.error("Facebook Sign-In Error:", error.message);
-        });
-});
-
-// Logout
-document.getElementById('logout-button').addEventListener('click', () => {
-    signOut(auth).then(() => {
-        window.location.href = "signup.html";
-    }).catch((error) => {
-        console.error("Error signing out:", error.message);
-    });
-});
 
