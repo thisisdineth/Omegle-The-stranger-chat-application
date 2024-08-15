@@ -188,7 +188,18 @@ footer {
     color: #fff;
     position: relative;
     width: 100%;
+    
+    .intro{
+        color: white;
+        font-size: smaller;
+        font-family: 'Times New Roman', Times, serif;
+        font-weight: 200;
+        text-decoration: none;
+        padding: 6px;
+    }
+
 }
+
 /* Sidebar accounts section */
 #sidebar-accounts {
     margin-top: 20px;
