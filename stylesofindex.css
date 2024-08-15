@@ -123,13 +123,15 @@ hr {
 
 button[type="submit"] {
     padding: 10px;
-    background-color: #01156f;
+    background-color: #3e5eec;
     color: #fff;
     border: none;
     border-radius: 5px;
     cursor: pointer;
     font-size: 16px;
+    width: calc(100% - 20px); /* 100% width minus the padding on left and right */
     transition: background-color 0.3s ease;
+    box-sizing: border-box; /* ensures padding is included in the element's width */
 }
 
 button[type="submit"]:hover {
