@@ -63,10 +63,16 @@ function loadTweets() {
         snapshot.forEach((childSnapshot) => {
             const tweet = childSnapshot.val();
             const tweetId = childSnapshot.key;
+
+            // Format the timestamp
+            const tweetDate = new Date(tweet.timestamp);
+            const formattedDate = tweetDate.toLocaleDateString();
+            const formattedTime = tweetDate.toLocaleTimeString();
+
             const li = document.createElement('li');
 
             li.innerHTML = `
-                <div class="tweet-author">${tweet.author}</div>
+                <div class="tweet-author">${tweet.author} <span class="tweet-timestamp">(${formattedDate} ${formattedTime})</span></div>
                 <div class="tweet-content">${tweet.content}</div>
                 <div class="tweet-actions">
                     <button onclick="likeTweet('${tweetId}')">Like (${tweet.likes})</button>
@@ -129,6 +135,14 @@ window.replyTweet = async function (tweetId) {
 };
 
 
+// Function to format timestamp
+function formatTimestamp(timestamp) {
+    const date = new Date(timestamp);
+    const formattedDate = date.toLocaleDateString(); // Formats the date
+    const formattedTime = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); // Formats the time
+    return `${formattedDate} ${formattedTime}`;
+}
+
 // Load Replies
 function loadReplies(tweetId, replies) {
     const repliesList = document.getElementById(`replies-${tweetId}`);
@@ -136,10 +150,14 @@ function loadReplies(tweetId, replies) {
 
     for (let replyId in replies) {
         const reply = replies[replyId];
+        const replyTime = formatTimestamp(reply.timestamp);
+
         const li = document.createElement('li');
 
         li.innerHTML = `
-            <div class="reply-author">${reply.author}</div>
+            <div class="reply-author">
+                ${reply.author} - <small>${replyTime}</small>
+            </div>
             <div class="reply-content">${reply.content}</div>
             ${reply.uid === auth.currentUser.uid ? `<button onclick="deleteReply('${tweetId}', '${replyId}')">Delete Reply</button>` : ''}
         `;

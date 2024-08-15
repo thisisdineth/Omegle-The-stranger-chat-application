@@ -176,6 +176,13 @@ button[type="submit"]:hover {
     text-decoration: underline;
 }
 
+.tweet-timestamp {
+    font-size: 0.85em;
+    color: #777;
+    margin-left: 5px;
+}
+ 
+
 footer {
     text-align: center;
     padding: 10px 0;
