@@ -209,41 +209,25 @@ window.deleteReply = function (tweetId, replyId) {
     }
 };
 
-// Upload Profile Picture
-document.getElementById('profile-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const file = document.getElementById('profile-picture').files[0];
-
-    if (file && file.size <= 2 * 1024 * 1024) {
-        const storageReference = storageRef(storage, 'profile_pictures/' + auth.currentUser.uid);
-        const uploadTask = uploadBytesResumable(storageReference, file);
-
-        uploadTask.on('state_changed', 
-            (snapshot) => {},
-            (error) => { console.error("Error uploading file:", error.message); },
-            async () => {
-                const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-                document.getElementById('profile-pic').src = downloadURL;
-                await update(ref(db, 'users/' + auth.currentUser.uid), { profilePicture: downloadURL });
-            }
-        );
-    } else {
-        alert("Please upload a file less than 2MB.");
-    }
-});
-
 // Load Profile Picture
 function loadProfilePicture() {
     const user = auth.currentUser;
     if (user) {
         const storageReference = storageRef(storage, 'profile_pictures/' + user.uid);
-        getDownloadURL(storageReference).then((url) => {
-            document.getElementById('profile-pic').src = url;
-        }).catch((error) => {
-            console.error("Error loading profile picture:", error.message);
-        });
+        getDownloadURL(storageReference)
+            .then((url) => {
+                document.getElementById('profile-pic').src = url;
+            })
+            .catch(() => {
+                // If there's an error (e.g., file not found), use default image
+                document.getElementById('profile-pic').src = 'unknown.png';
+            });
+    } else {
+        // Default image if no user is signed in
+        document.getElementById('profile-pic').src = 'unknown.png';
     }
 }
+
 
 // Load Suggested Accounts in Sidebar
 async function loadSuggestedAccounts() {
