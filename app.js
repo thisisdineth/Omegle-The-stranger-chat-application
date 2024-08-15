@@ -92,7 +92,7 @@ function loadTweets() {
     });
 }
 
-// Like Tweet
+// Like/Unlike Tweet
 window.likeTweet = async function (tweetId) {
     const tweetRef = ref(db, 'tweets/' + tweetId);
     const snapshot = await get(tweetRef);
@@ -105,20 +105,34 @@ window.likeTweet = async function (tweetId) {
     }
 
     // Check if the user has already liked the tweet
-    if (tweet.likedBy.includes(userUid)) {
-        alert("You can only like this tweet once.");
-        return;
+    const userLiked = tweet.likedBy.includes(userUid);
+
+    if (userLiked) {
+        // User has already liked the tweet; remove like
+        tweet.likedBy = tweet.likedBy.filter(uid => uid !== userUid);
+        const newLikes = tweet.likes ? tweet.likes - 1 : 0; // Handle case where likes is undefined
+
+        await update(tweetRef, { likes: newLikes, likedBy: tweet.likedBy });
+    } else {
+        // User has not liked the tweet; add like
+        tweet.likedBy.push(userUid);
+        const newLikes = tweet.likes ? tweet.likes + 1 : 1; // Handle case where likes is undefined
+
+        await update(tweetRef, { likes: newLikes, likedBy: tweet.likedBy });
     }
 
-    // Add user to likedBy array and update the tweet
-    tweet.likedBy.push(userUid);
-    const newLikes = tweet.likes ? tweet.likes + 1 : 1; // Handle case where likes is undefined
-
-    await update(tweetRef, { likes: newLikes, likedBy: tweet.likedBy });
-
-    // Optionally update the UI to reflect the new like count
-    document.getElementById(`like-count-${tweetId}`).innerText = newLikes;
+    // Update the UI to reflect the new like count
+    document.getElementById(`like-count-${tweetId}`).innerText = tweet.likes ? tweet.likes : 0;
+    
+    // Update the button style to reflect the like state
+    const likeButton = document.getElementById(`like-button-${tweetId}`);
+    if (userLiked) {
+        likeButton.classList.remove('liked'); // Remove 'liked' class if the user has unliked
+    } else {
+        likeButton.classList.add('liked'); // Add 'liked' class if the user has liked
+    }
 };
+
 
 
 // Show Reply Input
