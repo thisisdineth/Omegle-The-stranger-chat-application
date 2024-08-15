@@ -99,14 +99,27 @@ window.likeTweet = async function (tweetId) {
     const tweet = snapshot.val();
     const userUid = auth.currentUser.uid;
 
+    // Initialize likedBy array if it doesn't exist
+    if (!tweet.likedBy) {
+        tweet.likedBy = [];
+    }
+
+    // Check if the user has already liked the tweet
     if (tweet.likedBy.includes(userUid)) {
         alert("You can only like this tweet once.");
         return;
     }
 
+    // Add user to likedBy array and update the tweet
     tweet.likedBy.push(userUid);
-    update(tweetRef, { likes: tweet.likes + 1, likedBy: tweet.likedBy });
+    const newLikes = tweet.likes ? tweet.likes + 1 : 1; // Handle case where likes is undefined
+
+    await update(tweetRef, { likes: newLikes, likedBy: tweet.likedBy });
+
+    // Optionally update the UI to reflect the new like count
+    document.getElementById(`like-count-${tweetId}`).innerText = newLikes;
 };
+
 
 // Show Reply Input
 window.showReplyInput = function (tweetId) {
