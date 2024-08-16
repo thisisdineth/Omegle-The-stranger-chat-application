@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
-import { getDatabase, ref, set, get, push, onValue, remove, serverTimestamp, onDisconnect } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
+import { getDatabase, ref, set, get, push, onValue, serverTimestamp, onDisconnect } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
 
 // Initialize Firebase
 const firebaseConfig = {
@@ -81,27 +81,49 @@ async function startChat() {
 }
 
 // Connect to a chat room
-function connectToChatRoom(partnerUid) {
-    const chatRoomRef = ref(db, 'chatRooms');
-    const newChatRoomRef = push(chatRoomRef);
+async function connectToChatRoom(partnerUid) {
+    try {
+        const chatRoomRef = ref(db, 'chatRooms');
+        const snapshot = await get(chatRoomRef);
 
-    set(newChatRoomRef, {
-        users: [currentUser.uid, partnerUid],
-        messages: []
-    }).then(() => {
-        currentChatRoom = newChatRoomRef.key;
-        console.log(`Chat room created with ID: ${currentChatRoom}`);
-        alert("Successfully connected to a user! You can now start chatting.");
+        let existingRoom = null;
+
+        // Check if a chat room already exists between the two users
+        snapshot.forEach(childSnapshot => {
+            const room = childSnapshot.val();
+            if (room.users.includes(currentUser.uid) && room.users.includes(partnerUid)) {
+                existingRoom = childSnapshot.key;
+            }
+        });
+
+        if (existingRoom) {
+            currentChatRoom = existingRoom;
+        } else {
+            const newChatRoomRef = push(chatRoomRef);
+            await set(newChatRoomRef, {
+                users: [currentUser.uid, partnerUid],
+                messages: []
+            });
+            currentChatRoom = newChatRoomRef.key;
+        }
+
+        alert("Successfully connected to a user! Redirecting to chat...");
         document.getElementById('chat-container').style.display = 'block';
+
+        // Notify the partner user and redirect them
+        const partnerRef = ref(db, `activeUsers/${partnerUid}`);
+        set(partnerRef, { chatRoomId: currentChatRoom, redirect: true });
+
         listenForMessages();
-    }).catch((error) => {
-        console.error("Error creating chat room:", error);
-    });
+    } catch (error) {
+        console.error("Error connecting to chat room:", error);
+    }
 }
 
 // Listen for new messages in the chat room
 function listenForMessages() {
     if (!currentChatRoom) return;
+
     const chatMessagesRef = ref(db, `chatRooms/${currentChatRoom}/messages`);
     onValue(chatMessagesRef, (snapshot) => {
         const chatBox = document.getElementById('chat-box');
@@ -140,9 +162,32 @@ function sendMessage() {
     }
 }
 
+// Redirect user to the chat room if they are invited
+function checkForRedirect() {
+    const userRef = ref(db, `activeUsers/${currentUser.uid}`);
+    onValue(userRef, (snapshot) => {
+        if (snapshot.exists()) {
+            const userData = snapshot.val();
+            if (userData.redirect && userData.chatRoomId) {
+                currentChatRoom = userData.chatRoomId;
+                alert("You've been connected to a chat room! Redirecting...");
+                document.getElementById('chat-container').style.display = 'block';
+                listenForMessages();
+            }
+        }
+    });
+}
+
 // Event Listeners
 document.getElementById('new-chat-btn').addEventListener('click', startChat);
 document.getElementById('send-btn').addEventListener('click', sendMessage);
+
+onAuthStateChanged(auth, (user) => {
+    if (user) {
+        currentUser = user;
+        checkForRedirect();
+    }
+});
 
 // Update the local time periodically
 setInterval(() => {
