@@ -102,7 +102,7 @@ async function connectToChatRoom(partnerUid) {
     if (existingChatRoomsSnapshot.exists()) {
         existingChatRoomsSnapshot.forEach(roomSnapshot => {
             const roomData = roomSnapshot.val();
-            if (roomData.users.includes(currentUser.uid) && roomData.users.includes(partnerUid)) {
+            if (roomData.users && roomData.users.includes(currentUser.uid) && roomData.users.includes(partnerUid)) {
                 existingChatRoom = roomSnapshot.key;
             }
         });
