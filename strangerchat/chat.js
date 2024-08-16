@@ -4,13 +4,12 @@ import { getDatabase, ref, set, get, push, onValue, remove, serverTimestamp } fr
 
 // Initialize Firebase
 const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_AUTH_DOMAIN",
-    databaseURL: "YOUR_DATABASE_URL",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_STORAGE_BUCKET",
-    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-    appId: "YOUR_APP_ID"
+    apiKey: "AIzaSyA46ArJ8xW8XwDPe0f3DKiPu3Ve_0n4A54",
+    authDomain: "xclonev2-5106c.firebaseapp.com",
+    projectId: "xclonev2-5106c",
+    storageBucket: "xclonev2-5106c.appspot.com",
+    messagingSenderId: "402683016295",
+    appId: "1:402683016295:web:2226862af77fadfe5910c2"
 };
 
 const app = initializeApp(firebaseConfig);
