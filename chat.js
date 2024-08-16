@@ -122,7 +122,7 @@ onAuthStateChanged(auth, (user) => {
         updateActiveUsersCount();
     } else {
         alert("Please sign in to use the chat.");
-        window.location.href = "signin.html";
+        window.location.href = "signup.html";
     }
 });
 
