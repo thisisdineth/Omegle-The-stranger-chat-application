@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TeenTalk - Chat</title>
+    <link rel="stylesheet" href="chat.css">
+</head>
+
+<body>
+    <header>
+        <h1>TeenTalk Chat</h1>
+        <div id="active-users">Active Users: <span id="active-user-count">0</span></div>
+    </header>
+
+    <main>
+        <button id="start-chat">Start Chat</button>
+        <div id="chat-container" style="display:none;">
+            <div id="chat-box"></div>
+            <input type="text" id="chat-input" placeholder="Type a message...">
+            <button id="send-chat">Send</button>
+        </div>
+    </main>
+
+    <script type="module" src="chats.js"></script>
+</body>
+
+</html>
