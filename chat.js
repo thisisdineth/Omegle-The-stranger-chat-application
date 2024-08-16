@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
-import { getDatabase, ref, set, get, push, onValue, serverTimestamp, onDisconnect } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
+import { getDatabase, ref, set, get, push, onValue, remove, serverTimestamp, update } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
 
 // Initialize Firebase
 const firebaseConfig = {
@@ -36,94 +36,64 @@ function setActiveUser() {
         username: currentUser.displayName || "Anonymous",
         timestamp: serverTimestamp()
     });
-
-    // Remove user from active users on disconnect
-    onDisconnect(userRef).remove().then(() => {
-        console.log("User disconnected.");
-        updateActiveUsersCount(); // Update count on disconnect
-    });
 }
 
-// Handle authentication state
-onAuthStateChanged(auth, (user) => {
-    if (user) {
-        currentUser = user;
-        setActiveUser();
-        updateActiveUsersCount();
-    } else {
-        alert("Please sign in to use the chat.");
-        window.location.href = "signup.html";
-    }
-});
+// Remove current user from active users on disconnect
+function setDisconnect() {
+    const userRef = ref(db, `activeUsers/${currentUser.uid}`);
+    remove(userRef).then(() => console.log("User disconnected."));
+}
 
 // Start a chat with a random user
 async function startChat() {
-    try {
-        const activeUsersRef = ref(db, 'activeUsers');
-        const snapshot = await get(activeUsersRef);
+    const activeUsersRef = ref(db, 'activeUsers');
+    const snapshot = await get(activeUsersRef);
 
-        if (snapshot.exists()) {
-            const activeUsers = snapshot.val();
-            const userIds = Object.keys(activeUsers).filter(uid => uid !== currentUser.uid);
+    if (snapshot.exists()) {
+        const activeUsers = snapshot.val();
+        const userIds = Object.keys(activeUsers).filter(uid => uid !== currentUser.uid);
 
-            if (userIds.length > 0) {
-                const randomUserId = userIds[Math.floor(Math.random() * userIds.length)];
-                connectToChatRoom(randomUserId);
-            } else {
-                alert("No other users are currently online. Please wait...");
-            }
+        if (userIds.length > 0) {
+            const randomUserId = userIds[Math.floor(Math.random() * userIds.length)];
+            connectToChatRoom(randomUserId);
         } else {
-            alert("No active users available.");
+            alert("No other users are currently online. Please wait...");
         }
-    } catch (error) {
-        console.error("Error starting chat:", error);
+    } else {
+        alert("No active users available.");
     }
 }
 
 // Connect to a chat room
 async function connectToChatRoom(partnerUid) {
-    try {
-        const chatRoomRef = ref(db, 'chatRooms');
-        const snapshot = await get(chatRoomRef);
+    const chatRoomRef = ref(db, 'chatRooms');
+    const newChatRoomRef = push(chatRoomRef);
 
-        let existingRoom = null;
+    const chatRoomData = {
+        users: {
+            [currentUser.uid]: true,
+            [partnerUid]: true
+        },
+        messages: []
+    };
 
-        // Check if a chat room already exists between the two users
-        snapshot.forEach(childSnapshot => {
-            const room = childSnapshot.val();
-            if (room.users.includes(currentUser.uid) && room.users.includes(partnerUid)) {
-                existingRoom = childSnapshot.key;
-            }
-        });
+    await set(newChatRoomRef, chatRoomData);
 
-        if (existingRoom) {
-            currentChatRoom = existingRoom;
-        } else {
-            const newChatRoomRef = push(chatRoomRef);
-            await set(newChatRoomRef, {
-                users: [currentUser.uid, partnerUid],
-                messages: []
-            });
-            currentChatRoom = newChatRoomRef.key;
-        }
+    // Update both users with the chat room ID
+    const updates = {};
+    updates[`users/${currentUser.uid}/currentChatRoom`] = newChatRoomRef.key;
+    updates[`users/${partnerUid}/currentChatRoom`] = newChatRoomRef.key;
 
-        alert("Successfully connected to a user! Redirecting to chat...");
-        document.getElementById('chat-container').style.display = 'block';
+    await update(ref(db), updates);
 
-        // Notify the partner user and redirect them
-        const partnerRef = ref(db, `activeUsers/${partnerUid}`);
-        set(partnerRef, { chatRoomId: currentChatRoom, redirect: true });
+    currentChatRoom = newChatRoomRef.key;
 
-        listenForMessages();
-    } catch (error) {
-        console.error("Error connecting to chat room:", error);
-    }
+    alert("Successfully connected to a chat room!");
+    listenForMessages();
 }
 
 // Listen for new messages in the chat room
 function listenForMessages() {
-    if (!currentChatRoom) return;
-
     const chatMessagesRef = ref(db, `chatRooms/${currentChatRoom}/messages`);
     onValue(chatMessagesRef, (snapshot) => {
         const chatBox = document.getElementById('chat-box');
@@ -142,55 +112,44 @@ function sendMessage() {
     const chatInput = document.getElementById('chat-input').value;
     if (chatInput.trim() === '') return;
 
-    try {
-        const chatMessagesRef = ref(db, `chatRooms/${currentChatRoom}/messages`);
-        const newMessageRef = push(chatMessagesRef);
+    const chatMessagesRef = ref(db, `chatRooms/${currentChatRoom}/messages`);
+    const newMessageRef = push(chatMessagesRef);
 
-        set(newMessageRef, {
-            uid: currentUser.uid,
-            username: currentUser.displayName || "Anonymous",
-            message: chatInput,
-            timestamp: serverTimestamp()
-        }).then(() => {
-            console.log("Message sent.");
-            document.getElementById('chat-input').value = '';
-        }).catch((error) => {
-            console.error("Error sending message:", error);
-        });
-    } catch (error) {
-        console.error("Error sending message:", error);
-    }
-}
-
-// Redirect user to the chat room if they are invited
-function checkForRedirect() {
-    const userRef = ref(db, `activeUsers/${currentUser.uid}`);
-    onValue(userRef, (snapshot) => {
-        if (snapshot.exists()) {
-            const userData = snapshot.val();
-            if (userData.redirect && userData.chatRoomId) {
-                currentChatRoom = userData.chatRoomId;
-                alert("You've been connected to a chat room! Redirecting...");
-                document.getElementById('chat-container').style.display = 'block';
-                listenForMessages();
-            }
-        }
+    set(newMessageRef, {
+        uid: currentUser.uid,
+        username: currentUser.displayName || "Anonymous",
+        message: chatInput,
+        timestamp: serverTimestamp()
     });
+
+    document.getElementById('chat-input').value = '';
 }
+
+// Skip the current chat and search for a new one
+async function skipChat() {
+    if (currentChatRoom) {
+        const chatRoomRef = ref(db, `chatRooms/${currentChatRoom}`);
+        await remove(chatRoomRef);
+        currentChatRoom = null;
+    }
+    startChat();
+}
+
+// Handle authentication state
+onAuthStateChanged(auth, (user) => {
+    if (user) {
+        currentUser = user;
+        setActiveUser();
+        setDisconnect();
+        updateActiveUsersCount();
+    } else {
+        alert("Please sign in to use the chat.");
+        window.location.href = "signup.html";
+    }
+});
 
 // Event Listeners
 document.getElementById('new-chat-btn').addEventListener('click', startChat);
 document.getElementById('send-btn').addEventListener('click', sendMessage);
+document.getElementById('skip-btn').addEventListener('click', skipChat);
 
-onAuthStateChanged(auth, (user) => {
-    if (user) {
-        currentUser = user;
-        checkForRedirect();
-    }
-});
-
-// Update the local time periodically
-setInterval(() => {
-    const localTime = new Date().toLocaleTimeString();
-    document.getElementById('local-time').textContent = localTime;
-}, 1000);
