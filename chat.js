@@ -50,6 +50,16 @@ onAuthStateChanged(auth, (user) => {
         currentUser = user;
         setActiveUser();
         updateActiveUsersCount();
+
+        // Listen for existing chat room
+        const userChatRoomRef = ref(db, `users/${currentUser.uid}/currentChatRoom`);
+        onValue(userChatRoomRef, (snapshot) => {
+            if (snapshot.exists()) {
+                currentChatRoom = snapshot.val();
+                redirectToChatRoom();
+                listenForMessages();
+            }
+        });
     } else {
         alert("Please sign in to use the chat.");
         window.location.href = "signup.html";
@@ -68,7 +78,7 @@ async function startChat() {
 
             if (userIds.length > 0) {
                 const randomUserId = userIds[Math.floor(Math.random() * userIds.length)];
-                connectToChatRoom(randomUserId);
+                await connectToChatRoom(randomUserId);
             } else {
                 alert("No other users are currently online. Please wait...");
             }
@@ -80,23 +90,48 @@ async function startChat() {
     }
 }
 
-// Connect to a chat room
-function connectToChatRoom(partnerUid) {
-    const chatRoomRef = ref(db, 'chatRooms');
-    const newChatRoomRef = push(chatRoomRef);
+// Connect to a chat room or create one if it doesn't exist
+async function connectToChatRoom(partnerUid) {
+    const chatRoomsRef = ref(db, 'chatRooms');
+    const userChatRoomRef = ref(db, `users/${currentUser.uid}/currentChatRoom`);
+    const partnerChatRoomRef = ref(db, `users/${partnerUid}/currentChatRoom`);
 
-    set(newChatRoomRef, {
-        users: [currentUser.uid, partnerUid],
-        messages: []
-    }).then(() => {
+    // Check if a chat room already exists between the two users
+    let existingChatRoom = null;
+    const existingChatRoomsSnapshot = await get(chatRoomsRef);
+    if (existingChatRoomsSnapshot.exists()) {
+        existingChatRoomsSnapshot.forEach(roomSnapshot => {
+            const roomData = roomSnapshot.val();
+            if (roomData.users.includes(currentUser.uid) && roomData.users.includes(partnerUid)) {
+                existingChatRoom = roomSnapshot.key;
+            }
+        });
+    }
+
+    if (existingChatRoom) {
+        currentChatRoom = existingChatRoom;
+        await set(userChatRoomRef, currentChatRoom);
+        await set(partnerChatRoomRef, currentChatRoom);
+    } else {
+        const newChatRoomRef = push(chatRoomsRef);
         currentChatRoom = newChatRoomRef.key;
-        console.log(`Chat room created with ID: ${currentChatRoom}`);
-        alert("Successfully connected to a user! You can now start chatting.");
-        document.getElementById('chat-container').style.display = 'block';
-        listenForMessages();
-    }).catch((error) => {
-        console.error("Error creating chat room:", error);
-    });
+        await set(newChatRoomRef, {
+            users: [currentUser.uid, partnerUid],
+            messages: []
+        });
+        await set(userChatRoomRef, currentChatRoom);
+        await set(partnerChatRoomRef, currentChatRoom);
+    }
+
+    console.log(`Connected to chat room with ID: ${currentChatRoom}`);
+    redirectToChatRoom();
+    listenForMessages();
+}
+
+// Redirect user to the chat room
+function redirectToChatRoom() {
+    alert("Successfully connected to a user! You can now start chatting.");
+    document.getElementById('chat-container').style.display = 'block';
 }
 
 // Listen for new messages in the chat room
