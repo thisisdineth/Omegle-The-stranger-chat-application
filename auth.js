@@ -1,6 +1,8 @@
+// auth.js
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signInWithPopup, GoogleAuthProvider, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
 import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
+import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-storage.js";
 
 // Initialize Firebase
 const firebaseConfig = {
@@ -15,6 +17,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getDatabase(app);
+const storage = getStorage(app);
 
 // Utility functions
 function showLoader() {
@@ -35,24 +38,32 @@ function showMessage(message, isSuccess) {
     }, 3000);
 }
 
-// Sign Up Function
+// Sign Up Function with Profile Picture
 document.getElementById('signup-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     showLoader();
+
     const name = document.getElementById('signup-name').value;
     const username = document.getElementById('signup-username').value;
     const email = document.getElementById('signup-email').value;
     const password = document.getElementById('signup-password').value;
+    const profilePicFile = document.getElementById('signup-profile-pic').files[0];
 
     try {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
 
+        // Upload profile picture
+        const profilePicRef = storageRef(storage, `profile_pictures/${user.uid}`);
+        await uploadBytes(profilePicRef, profilePicFile);
+        const profilePicURL = await getDownloadURL(profilePicRef);
+
         // Save additional user data in the database
         await set(ref(db, 'users/' + user.uid), {
             name: name,
             username: username,
-            email: email
+            email: email,
+            profilePic: profilePicURL
         });
 
         showMessage("Sign Up Successful!", true);
@@ -64,6 +75,7 @@ document.getElementById('signup-form').addEventListener('submit', async (e) => {
         hideLoader();
     }
 });
+
 
 // Sign In Function
 document.getElementById('signin-form').addEventListener('submit', async (e) => {
@@ -99,23 +111,34 @@ document.getElementById('signin-form').addEventListener('submit', async (e) => {
     }
 });
 
-// Sign Up/Sign In with Google
-const googleProvider = new GoogleAuthProvider();
-
+// Google Sign Up with Username Prompt
 document.getElementById('google-signup').addEventListener('click', async () => {
     showLoader();
     try {
-        const result = await signInWithPopup(auth, googleProvider);
+        const result = await signInWithPopup(auth, new GoogleAuthProvider());
         const user = result.user;
 
-        // Check if user exists in the database
+        // Check if the user exists in the database
         const snapshot = await get(ref(db, 'users/' + user.uid));
         if (!snapshot.exists()) {
+            // Prompt user for a username and profile picture
+            const username = prompt("Please enter a username:");
+            const profilePicFile = document.getElementById('signup-profile-pic').files[0];
+            
+            // Upload profile picture
+            let profilePicURL = '';
+            if (profilePicFile) {
+                const profilePicRef = storageRef(storage, `profile_pictures/${user.uid}`);
+                await uploadBytes(profilePicRef, profilePicFile);
+                profilePicURL = await getDownloadURL(profilePicRef);
+            }
+
             // Save new user data in the database
             await set(ref(db, 'users/' + user.uid), {
                 name: user.displayName,
-                username: "", // Prompt for username if needed
-                email: user.email
+                username: username,
+                email: user.email,
+                profilePic: profilePicURL
             });
         }
 
@@ -128,6 +151,7 @@ document.getElementById('google-signup').addEventListener('click', async () => {
         hideLoader();
     }
 });
+
 
 document.getElementById('google-signin').addEventListener('click', async () => {
     showLoader();
