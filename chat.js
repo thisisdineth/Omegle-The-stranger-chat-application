@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
-import { getDatabase, ref, set, get, push, onValue, remove, serverTimestamp, update } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
+import { getDatabase, ref, set, get, push, onValue, remove, serverTimestamp, onDisconnect } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
 
 // Initialize Firebase
 const firebaseConfig = {
@@ -36,64 +36,72 @@ function setActiveUser() {
         username: currentUser.displayName || "Anonymous",
         timestamp: serverTimestamp()
     });
+
+    // Remove user from active users on disconnect
+    onDisconnect(userRef).remove().then(() => {
+        console.log("User disconnected.");
+        updateActiveUsersCount(); // Update count on disconnect
+    });
 }
 
-// Remove current user from active users on disconnect
-function setDisconnect() {
-    const userRef = ref(db, `activeUsers/${currentUser.uid}`);
-    remove(userRef).then(() => console.log("User disconnected."));
-}
+// Handle authentication state
+onAuthStateChanged(auth, (user) => {
+    if (user) {
+        currentUser = user;
+        setActiveUser();
+        updateActiveUsersCount();
+    } else {
+        alert("Please sign in to use the chat.");
+        window.location.href = "signup.html";
+    }
+});
 
 // Start a chat with a random user
 async function startChat() {
-    const activeUsersRef = ref(db, 'activeUsers');
-    const snapshot = await get(activeUsersRef);
+    try {
+        const activeUsersRef = ref(db, 'activeUsers');
+        const snapshot = await get(activeUsersRef);
 
-    if (snapshot.exists()) {
-        const activeUsers = snapshot.val();
-        const userIds = Object.keys(activeUsers).filter(uid => uid !== currentUser.uid);
+        if (snapshot.exists()) {
+            const activeUsers = snapshot.val();
+            const userIds = Object.keys(activeUsers).filter(uid => uid !== currentUser.uid);
 
-        if (userIds.length > 0) {
-            const randomUserId = userIds[Math.floor(Math.random() * userIds.length)];
-            connectToChatRoom(randomUserId);
+            if (userIds.length > 0) {
+                const randomUserId = userIds[Math.floor(Math.random() * userIds.length)];
+                connectToChatRoom(randomUserId);
+            } else {
+                alert("No other users are currently online. Please wait...");
+            }
         } else {
-            alert("No other users are currently online. Please wait...");
+            alert("No active users available.");
         }
-    } else {
-        alert("No active users available.");
+    } catch (error) {
+        console.error("Error starting chat:", error);
     }
 }
 
 // Connect to a chat room
-async function connectToChatRoom(partnerUid) {
+function connectToChatRoom(partnerUid) {
     const chatRoomRef = ref(db, 'chatRooms');
     const newChatRoomRef = push(chatRoomRef);
 
-    const chatRoomData = {
-        users: {
-            [currentUser.uid]: true,
-            [partnerUid]: true
-        },
+    set(newChatRoomRef, {
+        users: [currentUser.uid, partnerUid],
         messages: []
-    };
-
-    await set(newChatRoomRef, chatRoomData);
-
-    // Update both users with the chat room ID
-    const updates = {};
-    updates[`users/${currentUser.uid}/currentChatRoom`] = newChatRoomRef.key;
-    updates[`users/${partnerUid}/currentChatRoom`] = newChatRoomRef.key;
-
-    await update(ref(db), updates);
-
-    currentChatRoom = newChatRoomRef.key;
-
-    alert("Successfully connected to a chat room!");
-    listenForMessages();
+    }).then(() => {
+        currentChatRoom = newChatRoomRef.key;
+        console.log(`Chat room created with ID: ${currentChatRoom}`);
+        alert("Successfully connected to a user! You can now start chatting.");
+        document.getElementById('chat-container').style.display = 'block';
+        listenForMessages();
+    }).catch((error) => {
+        console.error("Error creating chat room:", error);
+    });
 }
 
 // Listen for new messages in the chat room
 function listenForMessages() {
+    if (!currentChatRoom) return;
     const chatMessagesRef = ref(db, `chatRooms/${currentChatRoom}/messages`);
     onValue(chatMessagesRef, (snapshot) => {
         const chatBox = document.getElementById('chat-box');
@@ -112,44 +120,32 @@ function sendMessage() {
     const chatInput = document.getElementById('chat-input').value;
     if (chatInput.trim() === '') return;
 
-    const chatMessagesRef = ref(db, `chatRooms/${currentChatRoom}/messages`);
-    const newMessageRef = push(chatMessagesRef);
+    try {
+        const chatMessagesRef = ref(db, `chatRooms/${currentChatRoom}/messages`);
+        const newMessageRef = push(chatMessagesRef);
 
-    set(newMessageRef, {
-        uid: currentUser.uid,
-        username: currentUser.displayName || "Anonymous",
-        message: chatInput,
-        timestamp: serverTimestamp()
-    });
-
-    document.getElementById('chat-input').value = '';
-}
-
-// Skip the current chat and search for a new one
-async function skipChat() {
-    if (currentChatRoom) {
-        const chatRoomRef = ref(db, `chatRooms/${currentChatRoom}`);
-        await remove(chatRoomRef);
-        currentChatRoom = null;
+        set(newMessageRef, {
+            uid: currentUser.uid,
+            username: currentUser.displayName || "Anonymous",
+            message: chatInput,
+            timestamp: serverTimestamp()
+        }).then(() => {
+            console.log("Message sent.");
+            document.getElementById('chat-input').value = '';
+        }).catch((error) => {
+            console.error("Error sending message:", error);
+        });
+    } catch (error) {
+        console.error("Error sending message:", error);
     }
-    startChat();
 }
-
-// Handle authentication state
-onAuthStateChanged(auth, (user) => {
-    if (user) {
-        currentUser = user;
-        setActiveUser();
-        setDisconnect();
-        updateActiveUsersCount();
-    } else {
-        alert("Please sign in to use the chat.");
-        window.location.href = "signup.html";
-    }
-});
 
 // Event Listeners
 document.getElementById('new-chat-btn').addEventListener('click', startChat);
 document.getElementById('send-btn').addEventListener('click', sendMessage);
-document.getElementById('skip-btn').addEventListener('click', skipChat);
 
+// Update the local time periodically
+setInterval(() => {
+    const localTime = new Date().toLocaleTimeString();
+    document.getElementById('local-time').textContent = localTime;
+}, 1000);
