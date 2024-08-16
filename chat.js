@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
-import { getDatabase, ref, set, get, push, onValue, remove, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
+import { getDatabase, ref, set, get, push, onValue, remove, serverTimestamp, onDisconnect } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
 
 // Initialize Firebase
 const firebaseConfig = {
@@ -36,13 +36,25 @@ function setActiveUser() {
         username: currentUser.displayName || "Anonymous",
         timestamp: serverTimestamp()
     });
+
+    // Remove user from active users on disconnect
+    onDisconnect(userRef).remove().then(() => {
+        console.log("User disconnected.");
+        updateActiveUsersCount(); // Update count on disconnect
+    });
 }
 
-// Remove current user from active users on disconnect
-function setDisconnect() {
-    const userRef = ref(db, `activeUsers/${currentUser.uid}`);
-    remove(userRef).then(() => console.log("User disconnected."));
-}
+// Handle authentication state
+onAuthStateChanged(auth, (user) => {
+    if (user) {
+        currentUser = user;
+        setActiveUser();
+        updateActiveUsersCount();
+    } else {
+        alert("Please sign in to use the chat.");
+        window.location.href = "signup.html";
+    }
+});
 
 // Start a chat with a random user
 async function startChat() {
@@ -88,6 +100,21 @@ function connectToChatRoom(partnerUid) {
     }
 }
 
+// Listen for new messages in the chat room
+function listenForMessages() {
+    const chatMessagesRef = ref(db, `chatRooms/${currentChatRoom}/messages`);
+    onValue(chatMessagesRef, (snapshot) => {
+        const chatBox = document.getElementById('chat-box');
+        chatBox.innerHTML = '';
+        snapshot.forEach(childSnapshot => {
+            const messageData = childSnapshot.val();
+            const messageElement = document.createElement('p');
+            messageElement.textContent = `${messageData.username}: ${messageData.message}`;
+            chatBox.appendChild(messageElement);
+        });
+    });
+}
+
 // Send a message in the chat room
 function sendMessage() {
     const chatInput = document.getElementById('chat-input').value;
@@ -109,3 +136,13 @@ function sendMessage() {
         console.error("Error sending message:", error);
     }
 }
+
+// Event Listeners
+document.getElementById('new-chat-btn').addEventListener('click', startChat);
+document.getElementById('send-btn').addEventListener('click', sendMessage);
+
+// Update the local time periodically
+setInterval(() => {
+    const localTime = new Date().toLocaleTimeString();
+    document.getElementById('local-time').textContent = localTime;
+}, 1000);
