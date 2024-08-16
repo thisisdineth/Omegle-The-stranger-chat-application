@@ -4,6 +4,7 @@ import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, on
 import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-storage.js";
 
+
 // Initialize Firebase
 const firebaseConfig = {
     apiKey: "AIzaSyA46ArJ8xW8XwDPe0f3DKiPu3Ve_0n4A54",
@@ -38,7 +39,17 @@ function showMessage(message, isSuccess) {
     }, 3000);
 }
 
-// Sign Up Function with Profile Picture
+// Validate Profile Picture Size
+function validateProfilePicSize(file) {
+    const maxSize = 2 * 1024 * 1024; // 2MB
+    if (file.size > maxSize) {
+        showMessage("File size exceeds 2MB. Please upload a smaller file.", false);
+        return false;
+    }
+    return true;
+}
+
+// Sign Up Function with Profile Picture and Size Validation
 document.getElementById('signup-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     showLoader();
@@ -48,6 +59,12 @@ document.getElementById('signup-form').addEventListener('submit', async (e) => {
     const email = document.getElementById('signup-email').value;
     const password = document.getElementById('signup-password').value;
     const profilePicFile = document.getElementById('signup-profile-pic').files[0];
+
+    // Validate file size
+    if (!validateProfilePicSize(profilePicFile)) {
+        hideLoader();
+        return;
+    }
 
     try {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -111,7 +128,7 @@ document.getElementById('signin-form').addEventListener('submit', async (e) => {
     }
 });
 
-// Google Sign Up with Username Prompt
+// Google Sign Up with Username and Profile Picture Prompt
 document.getElementById('google-signup').addEventListener('click', async () => {
     showLoader();
     try {
@@ -121,16 +138,26 @@ document.getElementById('google-signup').addEventListener('click', async () => {
         // Check if the user exists in the database
         const snapshot = await get(ref(db, 'users/' + user.uid));
         if (!snapshot.exists()) {
-            // Prompt user for a username and profile picture
+            // Prompt user for a username
             const username = prompt("Please enter a username:");
-            const profilePicFile = document.getElementById('signup-profile-pic').files[0];
-            
-            // Upload profile picture
             let profilePicURL = '';
+
+            // Prompt user to upload a profile picture
+            const profilePicFile = document.getElementById('signup-profile-pic').files[0];
             if (profilePicFile) {
+                // Validate file size
+                if (!validateProfilePicSize(profilePicFile)) {
+                    hideLoader();
+                    return;
+                }
+
                 const profilePicRef = storageRef(storage, `profile_pictures/${user.uid}`);
                 await uploadBytes(profilePicRef, profilePicFile);
                 profilePicURL = await getDownloadURL(profilePicRef);
+            } else {
+                showMessage("Please upload a profile picture.", false);
+                hideLoader();
+                return;
             }
 
             // Save new user data in the database
@@ -147,21 +174,6 @@ document.getElementById('google-signup').addEventListener('click', async () => {
     } catch (error) {
         console.error("Google Sign Up Error: ", error.message);
         showMessage("Google Sign Up Failed: " + error.message, false);
-    } finally {
-        hideLoader();
-    }
-});
-
-
-document.getElementById('google-signin').addEventListener('click', async () => {
-    showLoader();
-    try {
-        const result = await signInWithPopup(auth, googleProvider);
-        showMessage("Sign In with Google Successful!", true);
-        window.location.href = "index.html"; // Redirect to the main page after sign-in
-    } catch (error) {
-        console.error("Google Sign In Error: ", error.message);
-        showMessage("Google Sign In Failed: " + error.message, false);
     } finally {
         hideLoader();
     }
