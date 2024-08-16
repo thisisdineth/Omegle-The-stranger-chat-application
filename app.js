@@ -290,7 +290,7 @@ async function loadSuggestedAccounts() {
             profileDiv.className = 'profile-row';
 
             profileDiv.innerHTML = `
-                <img src="${userData.profilePicture || 'default-profile.png'}" alt="Profile Picture">
+                <img src="${userData.profilePicture || 'unknown.png'}" alt="Profile Picture">
                 <span class="account-name">${userData.name || 'Unknown Name'}</span>
             `;
 
