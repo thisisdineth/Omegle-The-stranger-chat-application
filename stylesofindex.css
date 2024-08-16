@@ -24,6 +24,10 @@ header {
     align-items: center;
 }
 
+.header-right {
+    color: #000000;
+}
+ 
 header .logo {
     width: 40px;
     margin-right: 10px;

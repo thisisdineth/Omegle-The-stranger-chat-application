@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TeenTalk Stranger Chat</title>
+    <link rel="stylesheet" href="chat.css">
+</head>
+<body>
+
+    <div id="header">
+        <div id="header-left">
+            <img src="icon.png" alt="Logo" id="logo">
+            <span id="active-users">Active Users: <span id="active-user-count">0</span></span>
+        </div>
+        <div id="header-right">
+            <span id="local-time"></span>
+        </div>
+    </div>
+
+    <div id="chat-container">
+        <div id="status">Connecting to a user...</div>
+        <div id="chat-box"></div>
+        <div id="chat-input-container">
+            <input type="text" id="chat-input" placeholder="You: Type a message...">
+            <button id="send-btn">Send</button>
+        </div>
+    </div>
+
+    <div id="controls">
+        <button id="new-chat-btn">New Chat</button>
+        <button id="skip-btn">Skip</button>
+    </div>
+
+    <script type="module" src="chat.js"></script>
+
+</body>
+</html>
