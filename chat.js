@@ -82,22 +82,20 @@ async function startChat() {
 
 // Connect to a chat room
 function connectToChatRoom(partnerUid) {
-    try {
-        const chatRoomRef = ref(db, 'chatRooms');
-        const newChatRoomRef = push(chatRoomRef);
+    const chatRoomRef = ref(db, 'chatRooms');
+    const newChatRoomRef = push(chatRoomRef);
 
-        set(newChatRoomRef, {
-            users: [currentUser.uid, partnerUid],
-            messages: []
-        });
-
+    set(newChatRoomRef, {
+        users: [currentUser.uid, partnerUid],
+        messages: []
+    }).then(() => {
+        console.log(`Chat room created with ID: ${newChatRoomRef.key}`);
         currentChatRoom = newChatRoomRef.key;
-
         document.getElementById('chat-container').style.display = 'block';
         listenForMessages();
-    } catch (error) {
-        console.error("Error connecting to chat room:", error);
-    }
+    }).catch((error) => {
+        console.error("Error creating chat room:", error);
+    });
 }
 
 // Listen for new messages in the chat room
@@ -129,9 +127,12 @@ function sendMessage() {
             username: currentUser.displayName || "Anonymous",
             message: chatInput,
             timestamp: serverTimestamp()
+        }).then(() => {
+            console.log("Message sent.");
+            document.getElementById('chat-input').value = '';
+        }).catch((error) => {
+            console.error("Error sending message:", error);
         });
-
-        document.getElementById('chat-input').value = '';
     } catch (error) {
         console.error("Error sending message:", error);
     }
