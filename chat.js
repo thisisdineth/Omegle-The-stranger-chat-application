@@ -89,8 +89,9 @@ function connectToChatRoom(partnerUid) {
         users: [currentUser.uid, partnerUid],
         messages: []
     }).then(() => {
-        console.log(`Chat room created with ID: ${newChatRoomRef.key}`);
         currentChatRoom = newChatRoomRef.key;
+        console.log(`Chat room created with ID: ${currentChatRoom}`);
+        alert("Successfully connected to a user! You can now start chatting.");
         document.getElementById('chat-container').style.display = 'block';
         listenForMessages();
     }).catch((error) => {
@@ -100,6 +101,7 @@ function connectToChatRoom(partnerUid) {
 
 // Listen for new messages in the chat room
 function listenForMessages() {
+    if (!currentChatRoom) return;
     const chatMessagesRef = ref(db, `chatRooms/${currentChatRoom}/messages`);
     onValue(chatMessagesRef, (snapshot) => {
         const chatBox = document.getElementById('chat-box');
