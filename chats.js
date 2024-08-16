@@ -1,6 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
-import { getDatabase, ref, set, get, push, onValue, remove, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
+import { getFirestore, doc, setDoc, getDoc, addDoc, collection, deleteDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+import { getDatabase, ref, set, get, remove, onValue } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
 
 // Initialize Firebase
 const firebaseConfig = {
@@ -12,10 +13,10 @@ const firebaseConfig = {
     appId: "1:402683016295:web:2226862af77fadfe5910c2"
 };
 
-
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getDatabase(app);
+const firestore = getFirestore(app);
 
 let currentUser = null;
 let currentChatRoom = null;
@@ -37,12 +38,10 @@ function setActiveUser() {
         username: currentUser.displayName || "Anonymous",
         timestamp: serverTimestamp()
     });
-}
 
-// Remove current user from active users on disconnect
-function setDisconnect() {
-    const userRef = ref(db, `activeUsers/${currentUser.uid}`);
-    remove(userRef).then(() => console.log("User disconnected."));
+    // Set up disconnect to remove the user from active users when they leave
+    const onDisconnectRef = ref(db, `activeUsers/${currentUser.uid}`);
+    remove(onDisconnectRef).then(() => console.log("User disconnected.")).catch(console.error);
 }
 
 // Start a chat with a random user
@@ -66,31 +65,28 @@ async function startChat() {
 }
 
 // Connect to a chat room
-function connectToChatRoom(partnerUid) {
-    const chatRoomRef = ref(db, 'chatRooms');
-    const newChatRoomRef = push(chatRoomRef);
-
-    set(newChatRoomRef, {
+async function connectToChatRoom(partnerUid) {
+    const chatRoomRef = collection(firestore, 'chatRooms');
+    const newChatRoomRef = await addDoc(chatRoomRef, {
         users: [currentUser.uid, partnerUid],
         messages: []
     });
 
-    currentChatRoom = newChatRoomRef.key;
-
+    currentChatRoom = newChatRoomRef.id;
     document.getElementById('chat-container').style.display = 'block';
     listenForMessages();
 }
 
 // Listen for new messages in the chat room
 function listenForMessages() {
-    const chatMessagesRef = ref(db, `chatRooms/${currentChatRoom}/messages`);
-    onValue(chatMessagesRef, (snapshot) => {
+    const chatMessagesRef = collection(firestore, `chatRooms/${currentChatRoom}/messages`);
+    onSnapshot(chatMessagesRef, (snapshot) => {
         const chatBox = document.getElementById('chat-box');
-        chatBox.innerHTML = '';
-        snapshot.forEach(childSnapshot => {
-            const messageData = childSnapshot.val();
+        chatBox.innerHTML = ''; // Clear chat box before updating
+        snapshot.forEach(doc => {
+            const messageData = doc.data();
             const messageElement = document.createElement('p');
-            messageElement.textContent = `${messageData.username}: ${messageData.message}`;
+            messageElement.textContent = `${messageData.username}: ${messageData.message} (${new Date(messageData.timestamp.toMillis()).toLocaleTimeString()})`;
             chatBox.appendChild(messageElement);
         });
     });
@@ -101,10 +97,8 @@ function sendMessage() {
     const chatInput = document.getElementById('chat-input').value;
     if (chatInput.trim() === '') return;
 
-    const chatMessagesRef = ref(db, `chatRooms/${currentChatRoom}/messages`);
-    const newMessageRef = push(chatMessagesRef);
-
-    set(newMessageRef, {
+    const chatMessagesRef = collection(firestore, `chatRooms/${currentChatRoom}/messages`);
+    addDoc(chatMessagesRef, {
         uid: currentUser.uid,
         username: currentUser.displayName || "Anonymous",
         message: chatInput,
@@ -114,19 +108,30 @@ function sendMessage() {
     document.getElementById('chat-input').value = '';
 }
 
+// Clean up chat room data when user leaves
+async function cleanUpChatRoom() {
+    if (currentChatRoom) {
+        const chatRoomRef = doc(firestore, `chatRooms/${currentChatRoom}`);
+        await deleteDoc(chatRoomRef);
+        currentChatRoom = null;
+    }
+}
+
 // Handle authentication state
 onAuthStateChanged(auth, (user) => {
     if (user) {
         currentUser = user;
         setActiveUser();
-        setDisconnect();
-        updateActiveUsersCount();
+        updateActiveUsersCount(); // Ensure the count is updated after setting active user
     } else {
         alert("Please sign in to use the chat.");
-        window.location.href = "signup.html";
+        window.location.href = "signin.html";
     }
 });
 
 // Event Listeners
 document.getElementById('start-chat').addEventListener('click', startChat);
 document.getElementById('send-chat').addEventListener('click', sendMessage);
+
+// Clean up chat room on window unload
+window.addEventListener('beforeunload', cleanUpChatRoom);
