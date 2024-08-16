@@ -46,53 +46,46 @@ function setDisconnect() {
 
 // Start a chat with a random user
 async function startChat() {
-    const activeUsersRef = ref(db, 'activeUsers');
-    const snapshot = await get(activeUsersRef);
+    try {
+        const activeUsersRef = ref(db, 'activeUsers');
+        const snapshot = await get(activeUsersRef);
 
-    if (snapshot.exists()) {
-        const activeUsers = snapshot.val();
-        const userIds = Object.keys(activeUsers).filter(uid => uid !== currentUser.uid);
+        if (snapshot.exists()) {
+            const activeUsers = snapshot.val();
+            const userIds = Object.keys(activeUsers).filter(uid => uid !== currentUser.uid);
 
-        if (userIds.length > 0) {
-            const randomUserId = userIds[Math.floor(Math.random() * userIds.length)];
-            connectToChatRoom(randomUserId);
+            if (userIds.length > 0) {
+                const randomUserId = userIds[Math.floor(Math.random() * userIds.length)];
+                connectToChatRoom(randomUserId);
+            } else {
+                alert("No other users are currently online. Please wait...");
+            }
         } else {
-            alert("No other users are currently online. Please wait...");
+            alert("No active users available.");
         }
-    } else {
-        alert("No active users available.");
+    } catch (error) {
+        console.error("Error starting chat:", error);
     }
 }
 
 // Connect to a chat room
 function connectToChatRoom(partnerUid) {
-    const chatRoomRef = ref(db, 'chatRooms');
-    const newChatRoomRef = push(chatRoomRef);
+    try {
+        const chatRoomRef = ref(db, 'chatRooms');
+        const newChatRoomRef = push(chatRoomRef);
 
-    set(newChatRoomRef, {
-        users: [currentUser.uid, partnerUid],
-        messages: []
-    });
-
-    currentChatRoom = newChatRoomRef.key;
-
-    document.getElementById('chat-container').style.display = 'block';
-    listenForMessages();
-}
-
-// Listen for new messages in the chat room
-function listenForMessages() {
-    const chatMessagesRef = ref(db, `chatRooms/${currentChatRoom}/messages`);
-    onValue(chatMessagesRef, (snapshot) => {
-        const chatBox = document.getElementById('chat-box');
-        chatBox.innerHTML = '';
-        snapshot.forEach(childSnapshot => {
-            const messageData = childSnapshot.val();
-            const messageElement = document.createElement('p');
-            messageElement.textContent = `${messageData.username}: ${messageData.message}`;
-            chatBox.appendChild(messageElement);
+        set(newChatRoomRef, {
+            users: [currentUser.uid, partnerUid],
+            messages: []
         });
-    });
+
+        currentChatRoom = newChatRoomRef.key;
+
+        document.getElementById('chat-container').style.display = 'block';
+        listenForMessages();
+    } catch (error) {
+        console.error("Error connecting to chat room:", error);
+    }
 }
 
 // Send a message in the chat room
@@ -100,32 +93,19 @@ function sendMessage() {
     const chatInput = document.getElementById('chat-input').value;
     if (chatInput.trim() === '') return;
 
-    const chatMessagesRef = ref(db, `chatRooms/${currentChatRoom}/messages`);
-    const newMessageRef = push(chatMessagesRef);
+    try {
+        const chatMessagesRef = ref(db, `chatRooms/${currentChatRoom}/messages`);
+        const newMessageRef = push(chatMessagesRef);
 
-    set(newMessageRef, {
-        uid: currentUser.uid,
-        username: currentUser.displayName || "Anonymous",
-        message: chatInput,
-        timestamp: serverTimestamp()
-    });
+        set(newMessageRef, {
+            uid: currentUser.uid,
+            username: currentUser.displayName || "Anonymous",
+            message: chatInput,
+            timestamp: serverTimestamp()
+        });
 
-    document.getElementById('chat-input').value = '';
-}
-
-// Handle authentication state
-onAuthStateChanged(auth, (user) => {
-    if (user) {
-        currentUser = user;
-        setActiveUser();
-        setDisconnect();
-        updateActiveUsersCount();
-    } else {
-        alert("Please sign in to use the chat.");
-        window.location.href = "signup.html";
+        document.getElementById('chat-input').value = '';
+    } catch (error) {
+        console.error("Error sending message:", error);
     }
-});
-
-// Event Listeners
-document.getElementById('start-chat').addEventListener('click', startChat);
-document.getElementById('send-chat').addEventListener('click', sendMessage);
+}
