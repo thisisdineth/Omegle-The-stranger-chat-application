@@ -138,7 +138,6 @@ function redirectToChatRoom() {
     document.getElementById('chat-container').style.display = 'block';
 }
 
-// Listen for new messages in the chat room
 function listenForMessages() {
     if (!currentChatRoom) return;
     const chatMessagesRef = ref(db, `chatRooms/${currentChatRoom}/messages`);
@@ -147,12 +146,21 @@ function listenForMessages() {
         chatBox.innerHTML = '';
         snapshot.forEach(childSnapshot => {
             const messageData = childSnapshot.val();
-            const messageElement = document.createElement('p');
-            messageElement.textContent = `${messageData.uid === currentUser.uid ? 'You' : 'Stranger'}: ${messageData.message}`;
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('message');
+            if (messageData.uid === currentUser.uid) {
+                messageElement.classList.add('you');
+                messageElement.textContent = `You: ${messageData.message}`;
+            } else {
+                messageElement.classList.add('stranger');
+                messageElement.textContent = `Stranger: ${messageData.message}`;
+            }
             chatBox.appendChild(messageElement);
         });
+        chatBox.scrollTop = chatBox.scrollHeight; // Auto-scroll to the bottom
     });
 }
+
 
 // Listen for typing status
 function listenForTyping() {
