@@ -17,33 +17,6 @@ body {
     border-bottom: 1px solid #ddd;
   
 }
-/* Add styles for mic icon */
-#mic-icon {
-    height: 40px;
-    margin-left: 10px;
-}
-
-#reply-container {
-    padding: 10px;
-    background-color: #f1f1f1;
-    border-left: 5px solid #007aff;
-    margin-bottom: 10px;
-}
-
-#reply-message {
-    font-size: 14px;
-    color: #333;
-}
-
-#cancel-reply-btn {
-    background-color: #ff4d4d;
-    color: white;
-    border: none;
-    padding: 5px;
-    cursor: pointer;
-    margin-left: 10px;
-    border-radius: 5px;
-}
 
 
 #header-left {
