@@ -19,6 +19,9 @@ const db = getDatabase(app);
 let currentUser = null;
 let currentChatRoom = null;
 let typingRef = null;
+let mediaRecorder = null;
+let audioChunks = [];
+let replyToMessageId = null;
 
 // Sign in anonymously
 signInAnonymously(auth).catch((error) => {
@@ -62,82 +65,57 @@ function setActiveUser() {
         timestamp: serverTimestamp()
     });
 
-    // Remove user from active users on disconnect
     onDisconnect(userRef).remove().then(() => {
         console.log("User disconnected.");
         updateActiveUsersCount();
     });
 }
 
-// Start a chat with a random user
-async function startChat() {
-    try {
-        const activeUsersRef = ref(db, 'activeUsers');
-        const snapshot = await get(activeUsersRef);
-
-        if (snapshot.exists()) {
-            const activeUsers = snapshot.val();
-            const userIds = Object.keys(activeUsers).filter(uid => uid !== currentUser.uid);
-
-            if (userIds.length > 0) {
-                const randomUserId = userIds[Math.floor(Math.random() * userIds.length)];
-                await connectToChatRoom(randomUserId);
-            } else {
-                alert("No other users are currently online. Please wait...");
-            }
-        } else {
-            alert("No active users available.");
-        }
-    } catch (error) {
-        console.error("Error starting chat:", error);
-    }
-}
-
-// Connect to a chat room or create one if it doesn't exist
-async function connectToChatRoom(partnerUid) {
-    const chatRoomsRef = ref(db, 'chatRooms');
-    const userChatRoomRef = ref(db, `users/${currentUser.uid}/currentChatRoom`);
-    const partnerChatRoomRef = ref(db, `users/${partnerUid}/currentChatRoom`);
-
-    // Check if a chat room already exists between the two users
-    let existingChatRoom = null;
-    const existingChatRoomsSnapshot = await get(chatRoomsRef);
-    if (existingChatRoomsSnapshot.exists()) {
-        existingChatRoomsSnapshot.forEach(roomSnapshot => {
-            const roomData = roomSnapshot.val();
-            if (roomData.users && roomData.users.includes(currentUser.uid) && roomData.users.includes(partnerUid)) {
-                existingChatRoom = roomSnapshot.key;
-            }
-        });
-    }
-
-    if (existingChatRoom) {
-        currentChatRoom = existingChatRoom;
-        await set(userChatRoomRef, currentChatRoom);
-        await set(partnerChatRoomRef, currentChatRoom);
+// Handle voice recording
+document.getElementById('mic-icon').addEventListener('click', () => {
+    if (mediaRecorder && mediaRecorder.state === 'recording') {
+        mediaRecorder.stop();
     } else {
-        const newChatRoomRef = push(chatRoomsRef);
-        currentChatRoom = newChatRoomRef.key;
-        await set(newChatRoomRef, {
-            users: [currentUser.uid, partnerUid],
-            messages: []
-        });
-        await set(userChatRoomRef, currentChatRoom);
-        await set(partnerChatRoomRef, currentChatRoom);
+        navigator.mediaDevices.getUserMedia({ audio: true })
+            .then(stream => {
+                mediaRecorder = new MediaRecorder(stream);
+                mediaRecorder.ondataavailable = (e) => {
+                    audioChunks.push(e.data);
+                    if (mediaRecorder.state === 'inactive') {
+                        const audioBlob = new Blob(audioChunks, { type: 'audio/mpeg-3' });
+                        sendVoiceMessage(audioBlob);
+                    }
+                };
+                mediaRecorder.start();
+            })
+            .catch(error => console.error("Error accessing microphone:", error));
     }
+});
 
-    console.log(`Connected to chat room with ID: ${currentChatRoom}`);
-    redirectToChatRoom();
-    listenForMessages();
-    listenForTyping();
+function sendVoiceMessage(audioBlob) {
+    const reader = new FileReader();
+    reader.readAsDataURL(audioBlob);
+    reader.onloadend = () => {
+        const base64AudioMessage = reader.result.split(',')[1];
+
+        const chatMessagesRef = ref(db, `chatRooms/${currentChatRoom}/messages`);
+        const newMessageRef = push(chatMessagesRef);
+
+        set(newMessageRef, {
+            uid: currentUser.uid,
+            message: base64AudioMessage,
+            isAudio: true,
+            timestamp: serverTimestamp()
+        }).then(() => {
+            console.log("Voice message sent.");
+            handleTyping();
+        }).catch((error) => {
+            console.error("Error sending voice message:", error);
+        });
+    };
 }
 
-// Redirect user to the chat room
-function redirectToChatRoom() {
-    alert("Successfully connected to a user! You can now start chatting.");
-    document.getElementById('chat-container').style.display = 'block';
-}
-
+// Listen for messages
 function listenForMessages() {
     if (!currentChatRoom) return;
     const chatMessagesRef = ref(db, `chatRooms/${currentChatRoom}/messages`);
@@ -148,45 +126,61 @@ function listenForMessages() {
             const messageData = childSnapshot.val();
             const messageElement = document.createElement('div');
             messageElement.classList.add('message');
+            messageElement.dataset.id = childSnapshot.key;
+
             if (messageData.uid === currentUser.uid) {
                 messageElement.classList.add('you');
-                messageElement.textContent = `You: ${messageData.message}`;
+                messageElement.innerHTML = `You: ${messageData.isAudio ? '<audio controls src="data:audio/mpeg;base64,' + messageData.message + '"></audio>' : messageData.message}`;
+                addDeleteButton(messageElement);
             } else {
                 messageElement.classList.add('stranger');
-                messageElement.textContent = `Stranger: ${messageData.message}`;
+                messageElement.innerHTML = `Stranger: ${messageData.isAudio ? '<audio controls src="data:audio/mpeg;base64,' + messageData.message + '"></audio>' : messageData.message}`;
             }
+
+            if (messageData.replyTo) {
+                const replyElement = document.createElement('div');
+                replyElement.classList.add('reply');
+                replyElement.textContent = `Replying to: ${messageData.replyTo}`;
+                messageElement.prepend(replyElement);
+            }
+
+            messageElement.addEventListener('click', () => {
+                if (!messageData.isAudio) {
+                    replyToMessageId = childSnapshot.key;
+                    document.getElementById('reply-container').style.display = 'block';
+                    document.getElementById('reply-message').textContent = messageData.message;
+                }
+            });
+
             chatBox.appendChild(messageElement);
         });
-        chatBox.scrollTop = chatBox.scrollHeight; // Auto-scroll to the bottom
+        chatBox.scrollTop = chatBox.scrollHeight;
     });
 }
 
+function addDeleteButton(messageElement) {
+    const deleteBtn = document.createElement('button');
+    deleteBtn.textContent = 'Delete';
+    deleteBtn.style.marginLeft = '10px';
+    deleteBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const messageId = messageElement.dataset.id;
+        deleteMessage(messageId);
+    });
+    messageElement.appendChild(deleteBtn);
+}
 
-// Listen for typing status
-function listenForTyping() {
-    typingRef = ref(db, `chatRooms/${currentChatRoom}/typing`);
-    onValue(typingRef, (snapshot) => {
-        const typingData = snapshot.val();
-        const typingIndicator = document.getElementById('typing-indicator');
-        if (typingData && typingData.uid !== currentUser.uid) {
-            typingIndicator.textContent = "Stranger is typing...";
-        } else {
-            typingIndicator.textContent = "";
-        }
+function deleteMessage(messageId) {
+    if (!currentChatRoom) return;
+    const messageRef = ref(db, `chatRooms/${currentChatRoom}/messages/${messageId}`);
+    remove(messageRef).then(() => {
+        console.log("Message deleted.");
+    }).catch((error) => {
+        console.error("Error deleting message:", error);
     });
 }
 
-// Handle typing event
-function handleTyping() {
-    if (typingRef) {
-        set(typingRef, {
-            uid: currentUser.uid,
-            timestamp: serverTimestamp()
-        });
-    }
-}
-
-// Send a message in the chat room
+// Handle sending messages
 function sendMessage() {
     const chatInput = document.getElementById('chat-input').value;
     if (chatInput.trim() === '') return;
@@ -198,11 +192,14 @@ function sendMessage() {
         set(newMessageRef, {
             uid: currentUser.uid,
             message: chatInput,
-            timestamp: serverTimestamp()
+            timestamp: serverTimestamp(),
+            replyTo: replyToMessageId || null
         }).then(() => {
             console.log("Message sent.");
             document.getElementById('chat-input').value = '';
-            handleTyping(); // Reset typing status
+            handleTyping(); 
+            document.getElementById('reply-container').style.display = 'none';
+            replyToMessageId = null;
         }).catch((error) => {
             console.error("Error sending message:", error);
         });
@@ -211,17 +208,11 @@ function sendMessage() {
     }
 }
 
-// Leave the chat room and clear messages
-async function leaveChatRoom() {
-    if (currentChatRoom) {
-        const chatRoomRef = ref(db, `chatRooms/${currentChatRoom}`);
-        await remove(chatRoomRef);
-        currentChatRoom = null;
-        document.getElementById('chat-box').innerHTML = '';
-        document.getElementById('chat-container').style.display = 'none';
-        alert("You have left the chat.");
-    }
-}
+// Cancel reply
+document.getElementById('cancel-reply-btn').addEventListener('click', () => {
+    document.getElementById('reply-container').style.display = 'none';
+    replyToMessageId = null;
+});
 
 // Event Listeners
 document.getElementById('new-chat-btn').addEventListener('click', startChat);
@@ -235,8 +226,59 @@ document.getElementById('chat-input').addEventListener('keydown', (event) => {
     }
 });
 
-// Update the local time periodically
+// Update local time
 setInterval(() => {
     const localTime = new Date().toLocaleTimeString();
     document.getElementById('local-time').textContent = localTime;
 }, 1000);
+
+// Define the startChat function
+function startChat() {
+    // Code to start a new chat
+    console.log("Starting a new chat...");
+    // For instance, you might want to create a new chat room or join an existing one
+}
+
+// Define the redirectToChatRoom function
+function redirectToChatRoom() {
+    if (currentChatRoom) {
+        // Redirect to the chat room
+        console.log("Redirecting to chat room:", currentChatRoom);
+        // You might navigate to a different URL or update the view to show the chat room
+    }
+}
+
+// Define the leaveChatRoom function
+function leaveChatRoom() {
+    if (currentChatRoom) {
+        // Code to leave the current chat room
+        console.log("Leaving chat room:", currentChatRoom);
+        currentChatRoom = null;
+        const userChatRoomRef = ref(db, `users/${currentUser.uid}/currentChatRoom`);
+        set(userChatRoomRef, null);
+        // Optionally, navigate away or update the UI
+    }
+}
+
+// Handle typing indication
+function handleTyping() {
+    if (currentChatRoom) {
+        const typingRef = ref(db, `chatRooms/${currentChatRoom}/typing/${currentUser.uid}`);
+        set(typingRef, true);
+        setTimeout(() => {
+            set(typingRef, false);
+        }, 1000);
+    }
+}
+
+// Listen for typing indication
+function listenForTyping() {
+    if (currentChatRoom) {
+        const typingRef = ref(db, `chatRooms/${currentChatRoom}/typing`);
+        onValue(typingRef, (snapshot) => {
+            const typingUsers = snapshot.val() || {};
+            const typingList = Object.values(typingUsers).filter(Boolean);
+            document.getElementById('typing-indicator').textContent = typingList.length > 0 ? 'Typing...' : '';
+        });
+    }
+}
