@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
 import { getDatabase, ref, set, get, push, onValue, remove, serverTimestamp, onDisconnect } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
 
 // Initialize Firebase
@@ -18,31 +18,12 @@ const db = getDatabase(app);
 
 let currentUser = null;
 let currentChatRoom = null;
+let typingRef = null;
 
-// Update active users count
-function updateActiveUsersCount() {
-    const activeUsersRef = ref(db, 'activeUsers');
-    onValue(activeUsersRef, (snapshot) => {
-        const activeUsers = snapshot.exists() ? Object.keys(snapshot.val()).length : 0;
-        document.getElementById('active-user-count').textContent = activeUsers;
-    });
-}
-
-// Add current user to active users
-function setActiveUser() {
-    const userRef = ref(db, `activeUsers/${currentUser.uid}`);
-    set(userRef, {
-        uid: currentUser.uid,
-        username: currentUser.displayName || "Anonymous",
-        timestamp: serverTimestamp()
-    });
-
-    // Remove user from active users on disconnect
-    onDisconnect(userRef).remove().then(() => {
-        console.log("User disconnected.");
-        updateActiveUsersCount(); // Update count on disconnect
-    });
-}
+// Sign in anonymously
+signInAnonymously(auth).catch((error) => {
+    console.error("Error signing in anonymously:", error);
+});
 
 // Handle authentication state
 onAuthStateChanged(auth, (user) => {
@@ -58,13 +39,35 @@ onAuthStateChanged(auth, (user) => {
                 currentChatRoom = snapshot.val();
                 redirectToChatRoom();
                 listenForMessages();
+                listenForTyping();
             }
         });
-    } else {
-        alert("Please sign in to use the chat.");
-        window.location.href = "signup.html";
     }
 });
+
+// Update active users count
+function updateActiveUsersCount() {
+    const activeUsersRef = ref(db, 'activeUsers');
+    onValue(activeUsersRef, (snapshot) => {
+        const activeUsers = snapshot.exists() ? Object.keys(snapshot.val()).length : 0;
+        document.getElementById('active-user-count').textContent = activeUsers;
+    });
+}
+
+// Add current user to active users
+function setActiveUser() {
+    const userRef = ref(db, `activeUsers/${currentUser.uid}`);
+    set(userRef, {
+        uid: currentUser.uid,
+        timestamp: serverTimestamp()
+    });
+
+    // Remove user from active users on disconnect
+    onDisconnect(userRef).remove().then(() => {
+        console.log("User disconnected.");
+        updateActiveUsersCount();
+    });
+}
 
 // Start a chat with a random user
 async function startChat() {
@@ -126,6 +129,7 @@ async function connectToChatRoom(partnerUid) {
     console.log(`Connected to chat room with ID: ${currentChatRoom}`);
     redirectToChatRoom();
     listenForMessages();
+    listenForTyping();
 }
 
 // Redirect user to the chat room
@@ -144,10 +148,34 @@ function listenForMessages() {
         snapshot.forEach(childSnapshot => {
             const messageData = childSnapshot.val();
             const messageElement = document.createElement('p');
-            messageElement.textContent = `${messageData.username}: ${messageData.message}`;
+            messageElement.textContent = `${messageData.uid === currentUser.uid ? 'You' : 'Stranger'}: ${messageData.message}`;
             chatBox.appendChild(messageElement);
         });
     });
+}
+
+// Listen for typing status
+function listenForTyping() {
+    typingRef = ref(db, `chatRooms/${currentChatRoom}/typing`);
+    onValue(typingRef, (snapshot) => {
+        const typingData = snapshot.val();
+        const typingIndicator = document.getElementById('typing-indicator');
+        if (typingData && typingData.uid !== currentUser.uid) {
+            typingIndicator.textContent = "Stranger is typing...";
+        } else {
+            typingIndicator.textContent = "";
+        }
+    });
+}
+
+// Handle typing event
+function handleTyping() {
+    if (typingRef) {
+        set(typingRef, {
+            uid: currentUser.uid,
+            timestamp: serverTimestamp()
+        });
+    }
 }
 
 // Send a message in the chat room
@@ -161,12 +189,12 @@ function sendMessage() {
 
         set(newMessageRef, {
             uid: currentUser.uid,
-            username: currentUser.displayName || "Anonymous",
             message: chatInput,
             timestamp: serverTimestamp()
         }).then(() => {
             console.log("Message sent.");
             document.getElementById('chat-input').value = '';
+            handleTyping(); // Reset typing status
         }).catch((error) => {
             console.error("Error sending message:", error);
         });
@@ -175,9 +203,29 @@ function sendMessage() {
     }
 }
 
+// Leave the chat room and clear messages
+async function leaveChatRoom() {
+    if (currentChatRoom) {
+        const chatRoomRef = ref(db, `chatRooms/${currentChatRoom}`);
+        await remove(chatRoomRef);
+        currentChatRoom = null;
+        document.getElementById('chat-box').innerHTML = '';
+        document.getElementById('chat-container').style.display = 'none';
+        alert("You have left the chat.");
+    }
+}
+
 // Event Listeners
 document.getElementById('new-chat-btn').addEventListener('click', startChat);
 document.getElementById('send-btn').addEventListener('click', sendMessage);
+document.getElementById('skip-btn').addEventListener('click', leaveChatRoom);
+document.getElementById('chat-input').addEventListener('input', handleTyping);
+document.getElementById('chat-input').addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') {
+        event.preventDefault();
+        sendMessage();
+    }
+});
 
 // Update the local time periodically
 setInterval(() => {
