@@ -79,7 +79,7 @@ body {
 }
 
 .message.stranger {
-    background-color: #34c759;
+    background-color: #065018;
     color: white;
     align-self: flex-start;
     border-top-left-radius: 0;
@@ -114,14 +114,14 @@ body {
 #send-btn {
     padding: 10px;
     border: none;
-    background-color: #fe6016;
+    background-color: #025b05;
     color: white;
     border-radius: 20px;
     cursor: pointer;
 }
 
 #send-btn:hover {
-    background-color: #ea9930;
+    background-color: #06bb12;
 }
 
 #controls {
@@ -129,19 +129,30 @@ body {
     justify-content: center;
     padding: 10px;
 }
-
-#new-chat-btn, #skip-btn {
+#new-chat-btn{
     padding: 10px 20px;
     margin: 0 5px;
     border: none;
-    background-color: #007aff;
+    background-color: #02126f;
+    color: white;
+    border-radius: 20px;
+    cursor: pointer;
+}
+#new-chat-btn:hover {
+    background-color: #1b40e4;
+}
+#skip-btn {
+    padding: 10px 20px;
+    margin: 0 5px;
+    border: none;
+    background-color: #810110;
     color: white;
     border-radius: 20px;
     cursor: pointer;
 }
 
-#new-chat-btn:hover, #skip-btn:hover {
-    background-color: #005bb5;
+#skip-btn:hover {
+    background-color: #d00739;
 }
 
 #status {
