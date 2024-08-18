@@ -37,6 +37,12 @@
             margin-bottom: 10px;
         }
 
+        #site-title {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
         #live-users {
             font-size: 24px;
             font-weight: bold;
@@ -54,6 +60,7 @@
 
         #content img {
             max-width: 100%;
+            height: auto;
             border-radius: 10px;
             margin-bottom: 20px;
         }
@@ -153,12 +160,13 @@
 </head>
 <body>
     <header id="header">
-        <img id="logo" src="logo.png" alt="Stranger Chat Logo">
+        <img id="logo" src="img/logo.png" alt="Stranger Chat Logo">
+        <div id="site-title">Find a Guest</div>
         <div id="live-users">Live Users: <span id="active-user-count">0</span></div>
     </header>
 
     <div id="content">
-        <img src="" alt="Chat Image">
+        
         <h1>Welcome to Stranger Chat App</h1>
         <p>Connect with strangers around the world in an exciting and secure environment. Start chatting now and meet new people!</p>
         <button id="start-chat-btn"><span>Start Chat</span></button>
