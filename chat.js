@@ -21,6 +21,11 @@ let currentChatRoom = null;
 let typingRef = null;
 let replyMessageId = null;
 
+let mediaRecorder;
+let audioChunks = [];
+let audioBlob;
+let audioUrl;
+
 // Sign in anonymously
 signInAnonymously(auth).catch((error) => {
     console.error("Error signing in anonymously:", error);
@@ -150,24 +155,36 @@ function listenForMessages() {
             const messageData = childSnapshot.val();
             const messageElement = document.createElement('div');
             messageElement.classList.add('message');
-            if (messageData.uid === currentUser.uid) {
+
+            // Check if the message is a system message
+            if (messageData.isSystemMessage) {
+                messageElement.classList.add('system');
+            } else if (messageData.uid === currentUser.uid) {
                 messageElement.classList.add('you');
             } else {
                 messageElement.classList.add('stranger');
             }
 
-            // Add the message text
-            const messageText = document.createElement('div');
-            messageText.classList.add('message-text');
-            messageText.textContent = messageData.message;
-            messageElement.appendChild(messageText);
+            // Check if the message is a voice message
+            if (messageData.isVoiceMessage) {
+                const audioElement = document.createElement('audio');
+                audioElement.controls = true;
+                audioElement.src = messageData.voiceUrl;
+                messageElement.appendChild(audioElement);
+            } else {
+                // Add the message text
+                const messageText = document.createElement('div');
+                messageText.classList.add('message-text');
+                messageText.textContent = messageData.message;
+                messageElement.appendChild(messageText);
 
-            // Show reply if exists
-            if (messageData.replyTo) {
-                const replyElement = document.createElement('div');
-                replyElement.classList.add('reply');
-                replyElement.textContent = `Replying to: ${messageData.replyTo.message}`;
-                messageElement.appendChild(replyElement);
+                // Show reply if exists
+                if (messageData.replyTo) {
+                    const replyElement = document.createElement('div');
+                    replyElement.classList.add('reply');
+                    replyElement.textContent = `Replying to: ${messageData.replyTo.message}`;
+                    messageElement.appendChild(replyElement);
+                }
             }
 
             // Add delete button for own messages
@@ -318,7 +335,95 @@ async function leaveChatRoom() {
     }
 }
 
-// Event Listeners
+// Voice Message Recording Logic
+document.getElementById('voice-toggle-btn').addEventListener('click', () => {
+    document.getElementById('voice-message-controls').classList.toggle('hidden');
+});
+
+document.getElementById('record-btn').addEventListener('click', startRecording);
+document.getElementById('stop-btn').addEventListener('click', stopRecording);
+document.getElementById('playback-btn').addEventListener('click', playbackRecording);
+document.getElementById('send-voice-btn').addEventListener('click', sendVoiceMessage);
+document.getElementById('cancel-voice-btn').addEventListener('click', cancelVoiceMessage);
+
+function startRecording() {
+    navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+        mediaRecorder = new MediaRecorder(stream);
+        mediaRecorder.start();
+
+        audioChunks = [];
+        mediaRecorder.ondataavailable = event => {
+            audioChunks.push(event.data);
+        };
+
+        mediaRecorder.onstop = () => {
+            audioBlob = new Blob(audioChunks, { type: 'audio/mpeg' });
+            audioUrl = URL.createObjectURL(audioBlob);
+            document.getElementById('audio-playback').src = audioUrl;
+            document.getElementById('audio-playback').hidden = false;
+        };
+
+        document.getElementById('record-btn').disabled = true;
+        document.getElementById('stop-btn').disabled = false;
+        document.getElementById('playback-btn').disabled = true;
+        document.getElementById('send-voice-btn').disabled = true;
+        document.getElementById('cancel-voice-btn').disabled = false;
+    }).catch(error => {
+        console.error("Error accessing microphone:", error);
+    });
+}
+
+function stopRecording() {
+    mediaRecorder.stop();
+    document.getElementById('stop-btn').disabled = true;
+    document.getElementById('playback-btn').disabled = false;
+    document.getElementById('send-voice-btn').disabled = false;
+}
+
+function playbackRecording() {
+    const audioElement = document.getElementById('audio-playback');
+    audioElement.play();
+}
+
+function cancelVoiceMessage() {
+    audioBlob = null;
+    audioUrl = null;
+    document.getElementById('audio-playback').hidden = true;
+
+    document.getElementById('record-btn').disabled = false;
+    document.getElementById('stop-btn').disabled = true;
+    document.getElementById('playback-btn').disabled = true;
+    document.getElementById('send-voice-btn').disabled = true;
+    document.getElementById('cancel-voice-btn').disabled = true;
+}
+//I have to debug voice msg 
+async function sendVoiceMessage() {
+    if (!audioBlob) return;
+
+    try {
+        // Generate a unique, valid identifier for the voice message
+        const sanitizedId = `${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
+        const storageRef = ref(db, `chatRooms/${currentChatRoom}/voiceMessages/${sanitizedId}.mp3`);
+
+        const chatMessagesRef = ref(db, `chatRooms/${currentChatRoom}/messages`);
+        const newMessageRef = push(chatMessagesRef);
+
+        await set(newMessageRef, {
+            uid: currentUser.uid,
+            isVoiceMessage: true,
+            voiceUrl: audioUrl,
+            timestamp: serverTimestamp()
+        });
+
+        console.log("Voice message sent.");
+        cancelVoiceMessage(); // Reset the recording controls
+    } catch (error) {
+        console.error("Error sending voice message:", error);
+    }
+}
+
+
+// Event Listeners for text input and chat buttons
 document.getElementById('new-chat-btn').addEventListener('click', startChat);
 document.getElementById('send-btn').addEventListener('click', sendMessage);
 document.getElementById('skip-btn').addEventListener('click', leaveChatRoom);
