@@ -71,14 +71,14 @@ body {
 }
 
 .message.you {
-    background-color: #007aff;
+    background-color: #0ca016;
     color: white;
     align-self: flex-end;
     border-top-right-radius: 0;
 }
 
 .message.stranger {
-    background-color: #065018;
+    background-color: #054a16;
     color: white;
     align-self: flex-start;
     border-top-left-radius: 0;
