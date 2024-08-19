@@ -293,15 +293,28 @@ function deleteMessage(messageId) {
         });
 }
 
-// Leave the chat room and clear messages
+// Leave the chat room and notify the other user
 async function leaveChatRoom() {
     if (currentChatRoom) {
         const chatRoomRef = ref(db, `chatRooms/${currentChatRoom}`);
-        await remove(chatRoomRef);
-        currentChatRoom = null;
-        document.getElementById('chat-box').innerHTML = '';
-        document.getElementById('chat-container').style.display = 'none';
-        alert("You have left the chat.");
+        
+        // Send a message indicating the user has skipped the chat
+        const skipMessageRef = push(ref(db, `chatRooms/${currentChatRoom}/messages`));
+        await set(skipMessageRef, {
+            uid: currentUser.uid,
+            message: "The user has left the chat.",
+            isSystemMessage: true,  // Mark this as a system message
+            timestamp: serverTimestamp()
+        });
+
+        // Allow some time for the message to be sent before clearing the chat
+        setTimeout(async () => {
+            await remove(chatRoomRef);
+            currentChatRoom = null;
+            document.getElementById('chat-box').innerHTML = '';
+            document.getElementById('chat-container').style.display = 'none';
+            alert("You have left the chat.");
+        }, 500);
     }
 }
 
