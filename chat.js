@@ -19,6 +19,7 @@ const db = getDatabase(app);
 let currentUser = null;
 let currentChatRoom = null;
 let typingRef = null;
+let replyMessageId = null;
 
 // Sign in anonymously
 signInAnonymously(auth).catch((error) => {
@@ -138,6 +139,7 @@ function redirectToChatRoom() {
     document.getElementById('chat-container').style.display = 'block';
 }
 
+// Listen for messages in the chat room
 function listenForMessages() {
     if (!currentChatRoom) return;
     const chatMessagesRef = ref(db, `chatRooms/${currentChatRoom}/messages`);
@@ -150,30 +152,80 @@ function listenForMessages() {
             messageElement.classList.add('message');
             if (messageData.uid === currentUser.uid) {
                 messageElement.classList.add('you');
-                messageElement.textContent = `You: ${messageData.message}`;
             } else {
                 messageElement.classList.add('stranger');
-                messageElement.textContent = `Stranger: ${messageData.message}`;
             }
+
+            // Add the message text
+            const messageText = document.createElement('div');
+            messageText.classList.add('message-text');
+            messageText.textContent = messageData.message;
+            messageElement.appendChild(messageText);
+
+            // Show reply if exists
+            if (messageData.replyTo) {
+                const replyElement = document.createElement('div');
+                replyElement.classList.add('reply');
+                replyElement.textContent = `Replying to: ${messageData.replyTo.message}`;
+                messageElement.appendChild(replyElement);
+            }
+
+            // Add delete button for own messages
+            if (messageData.uid === currentUser.uid) {
+                const deleteButton = document.createElement('button');
+                deleteButton.classList.add('delete-btn', 'hidden');
+                deleteButton.textContent = 'Delete';
+                deleteButton.addEventListener('click', () => deleteMessage(childSnapshot.key));
+                messageElement.appendChild(deleteButton);
+            }
+
+            // Add reply button for all messages
+            const replyButton = document.createElement('button');
+            replyButton.classList.add('reply-btn', 'hidden');
+            replyButton.textContent = 'Reply';
+            replyButton.addEventListener('click', () => setReplyTo(messageData.message));
+            messageElement.appendChild(replyButton);
+
+            // Show buttons on hover or click
+            messageElement.addEventListener('mouseenter', () => {
+                showButtons(messageElement);
+            });
+            messageElement.addEventListener('mouseleave', () => {
+                hideButtons(messageElement);
+            });
+            messageElement.addEventListener('click', () => {
+                toggleButtons(messageElement);
+            });
+
             chatBox.appendChild(messageElement);
         });
         chatBox.scrollTop = chatBox.scrollHeight; // Auto-scroll to the bottom
     });
 }
 
+// Show buttons for the message element
+function showButtons(messageElement) {
+    const buttons = messageElement.querySelectorAll('.delete-btn, .reply-btn');
+    buttons.forEach(button => button.classList.remove('hidden'));
+}
 
-// Listen for typing status
-function listenForTyping() {
-    typingRef = ref(db, `chatRooms/${currentChatRoom}/typing`);
-    onValue(typingRef, (snapshot) => {
-        const typingData = snapshot.val();
-        const typingIndicator = document.getElementById('typing-indicator');
-        if (typingData && typingData.uid !== currentUser.uid) {
-            typingIndicator.textContent = "Stranger is typing...";
-        } else {
-            typingIndicator.textContent = "";
-        }
-    });
+// Hide buttons for the message element
+function hideButtons(messageElement) {
+    const buttons = messageElement.querySelectorAll('.delete-btn, .reply-btn');
+    buttons.forEach(button => button.classList.add('hidden'));
+}
+
+// Toggle buttons visibility on click
+function toggleButtons(messageElement) {
+    const buttons = messageElement.querySelectorAll('.delete-btn, .reply-btn');
+    buttons.forEach(button => button.classList.toggle('hidden'));
+}
+
+// Set the message to reply to
+function setReplyTo(message) {
+    replyMessageId = message;
+    const chatInput = document.getElementById('chat-input');
+    chatInput.placeholder = `Replying to: ${message}`;
 }
 
 // Handle typing event
@@ -184,6 +236,21 @@ function handleTyping() {
             timestamp: serverTimestamp()
         });
     }
+}
+
+// Listen for typing status
+function listenForTyping() {
+    if (!currentChatRoom) return;
+    typingRef = ref(db, `chatRooms/${currentChatRoom}/typing`);
+    onValue(typingRef, (snapshot) => {
+        const typingData = snapshot.val();
+        const typingIndicator = document.getElementById('typing-indicator');
+        if (typingData && typingData.uid !== currentUser.uid) {
+            typingIndicator.textContent = "Stranger is typing...";
+        } else {
+            typingIndicator.textContent = "";
+        }
+    });
 }
 
 // Send a message in the chat room
@@ -198,10 +265,13 @@ function sendMessage() {
         set(newMessageRef, {
             uid: currentUser.uid,
             message: chatInput,
+            replyTo: replyMessageId ? { message: replyMessageId } : null,
             timestamp: serverTimestamp()
         }).then(() => {
             console.log("Message sent.");
             document.getElementById('chat-input').value = '';
+            document.getElementById('chat-input').placeholder = 'You: Type a message...'; // Reset placeholder
+            replyMessageId = null; // Reset reply
             handleTyping(); // Reset typing status
         }).catch((error) => {
             console.error("Error sending message:", error);
@@ -209,6 +279,18 @@ function sendMessage() {
     } catch (error) {
         console.error("Error sending message:", error);
     }
+}
+
+// Delete a message
+function deleteMessage(messageId) {
+    const messageRef = ref(db, `chatRooms/${currentChatRoom}/messages/${messageId}`);
+    remove(messageRef)
+        .then(() => {
+            console.log("Message deleted.");
+        })
+        .catch((error) => {
+            console.error("Error deleting message:", error);
+        });
 }
 
 // Leave the chat room and clear messages

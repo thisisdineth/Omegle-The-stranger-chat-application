@@ -10,14 +10,12 @@ body {
 
 #header {
     background-color: #f8f8f8;
-    padding: 20px; /* Increase padding for more height */
+    padding: 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     border-bottom: 1px solid #ddd;
-  
 }
-
 
 #header-left {
     display: flex;
@@ -69,6 +67,7 @@ body {
     line-height: 1.4;
     word-wrap: break-word;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    position: relative;
 }
 
 .message.you {
@@ -83,6 +82,48 @@ body {
     color: white;
     align-self: flex-start;
     border-top-left-radius: 0;
+}
+
+.message .reply {
+    font-size: 12px;
+    color: #e0e0e0;
+    margin-top: 5px;
+}
+
+.message .delete-btn,
+.message .reply-btn {
+    position: absolute;
+    font-size: 12px;
+    padding: 2px 5px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    bottom: -15px;
+    background-color: #f0f0f0;
+}
+
+.hidden {
+    display: none;
+}
+
+.message .delete-btn {
+    right: 50px;
+    background-color: #e74c3c;
+    color: white;
+}
+
+.message .reply-btn {
+    right: 10px;
+    background-color: #3498db;
+    color: white;
+}
+
+.message .delete-btn:hover {
+    background-color: #c0392b;
+}
+
+.message .reply-btn:hover {
+    background-color: #2980b9;
 }
 
 #typing-indicator {
@@ -129,7 +170,8 @@ body {
     justify-content: center;
     padding: 10px;
 }
-#new-chat-btn{
+
+#new-chat-btn {
     padding: 10px 20px;
     margin: 0 5px;
     border: none;
@@ -138,9 +180,11 @@ body {
     border-radius: 20px;
     cursor: pointer;
 }
+
 #new-chat-btn:hover {
     background-color: #1b40e4;
 }
+
 #skip-btn {
     padding: 10px 20px;
     margin: 0 5px;
@@ -162,69 +206,69 @@ body {
 }
 
 footer {
-    color: rgb(255, 255, 255); /* Change text color to orange */
-    background-color: #10004f; /* Optional: Set a background color to make the orange text stand out */
-  
+    color: rgb(255, 255, 255);
+    background-color: #10004f;
     bottom: 0;
     left: 0;
     width: 100%;
-    padding: 0; /* Remove padding */
-    text-align: center; /* Center-align text */
-    z-index: 1000; /* Optional: Ensure it sits above other elements */
+    padding: 0;
+    text-align: center;
+    z-index: 1000;
 }
+
 /* Mobile view adjustments */
 @media (max-width: 600px) {
     #header {
-        padding: 10px; /* Reduce padding for smaller screens */
+        padding: 10px;
     }
 
     #logo {
-        height: 20px; /* Adjust logo size for mobile */
-        margin-right: 5px; /* Adjust margin for logo */
+        height: 20px;
+        margin-right: 5px;
     }
 
     #chat-container {
-        margin: 5px; /* Reduce margin for smaller screens */
-        padding: 5px; /* Reduce padding for smaller screens */
+        margin: 5px;
+        padding: 5px;
     }
 
     #chat-box {
-        padding-bottom: 5px; /* Reduce padding for smaller screens */
+        padding-bottom: 5px;
     }
 
     .message {
-        max-width: 90%; /* Increase max-width for mobile */
-        font-size: 12px; /* Reduce font size for mobile */
+        max-width: 90%;
+        font-size: 12px;
     }
 
     #chat-input-container {
-        padding-left: 0; /* Adjust padding for mobile */
-        padding-right: 0; /* Adjust padding for mobile */
+        padding-left: 0;
+        padding-right: 0;
     }
 
     #chat-input {
-        padding: 8px; /* Adjust padding for mobile */
+        padding: 8px;
     }
 
     #send-btn {
-        padding: 8px; /* Adjust button padding for mobile */
+        padding: 8px;
     }
 
     #controls {
-        flex-direction: column; /* Stack buttons vertically */
-        padding: 5px; /* Reduce padding for smaller screens */
+        flex-direction: column;
+        padding: 5px;
     }
 
     #new-chat-btn, #skip-btn {
-        padding: 8px 16px; /* Adjust button padding for mobile */
-        margin: 5px 0; /* Adjust margin for vertical stacking */
+        padding: 8px 16px;
+        margin: 5px 0;
     }
 
     #status {
-        font-size: 10px; /* Reduce font size for mobile */
+        font-size: 10px;
     }
 
     footer {
-        font-size: 12px; /* Adjust footer font size */
+        font-size: 12px;
     }
 }
