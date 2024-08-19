@@ -92,7 +92,7 @@ body {
 
 .message .delete-btn,
 .message .reply-btn {
-    position: absolute;
+    
     font-size: 12px;
     padding: 2px 5px;
     border: none;
