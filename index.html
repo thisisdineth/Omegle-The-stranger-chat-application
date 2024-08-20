@@ -38,6 +38,24 @@
     position: relative;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
+#header button {
+    color: white;
+    background-color: #409afa;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+#header button:hover {
+    background-color: #307ace;
+    transform: scale(1.05);
+}
+
 
 #logo {
     height: 80px;
@@ -237,6 +255,7 @@ footer {
         <img id="logo" src="img/logo.png" alt="Stranger Chat Logo">
         <div id="site-title">Find a Guest</div>
         <div id="live-users">Live Users: <span id="active-user-count">0</span></div>
+        <a href="blog.findaguest.online"><button>Visit our blog</button></a>
     </header>
 
     <div id="content">
