@@ -2,16 +2,14 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/fireba
 import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
 import { getDatabase, ref, set, get, push, onValue, remove, serverTimestamp, onDisconnect } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
 
-// Initialize Firebase
 const firebaseConfig = {
-    apiKey: "AIzaSyA46ArJ8xW8XwDPe0f3DKiPu3Ve_0n4A54",
-    authDomain: "xclonev2-5106c.firebaseapp.com",
-    projectId: "xclonev2-5106c",
-    storageBucket: "xclonev2-5106c.appspot.com",
-    messagingSenderId: "402683016295",
-    appId: "1:402683016295:web:2226862af77fadfe5910c2"
+    apiKey: "YOUR_API_KEY", // Replace with your actual API key
+    authDomain: "YOUR_AUTH_DOMAIN", // Replace with your Firebase Auth domain
+    projectId: "YOUR_PROJECT_ID", // Replace with your Firebase project ID
+    storageBucket: "YOUR_STORAGE_BUCKET", // Replace with your Firebase storage bucket
+    messagingSenderId: "YOUR_MESSAGING_SENDER_ID", // Replace with your Firebase messaging sender ID
+    appId: "YOUR_APP_ID" // Replace with your Firebase app ID
 };
-
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getDatabase(app);
