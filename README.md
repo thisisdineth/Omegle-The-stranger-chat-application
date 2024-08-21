@@ -1,230 +1,119 @@
-Here's a `README.md` file you can use for your GitHub repository. This file explains the project, how to set it up, and how to use it.
+
 
 ```markdown
-# Twitter Clone with Firebase
+# Find a Guest | Chat Application
 
-This is a simple Twitter clone built using Firebase for authentication, database management, and storage. Users can sign up, sign in, post tweets, like tweets, and manage their profiles (including uploading profile pictures).
+Welcome to the **Find a Guest** chat application! This app allows users to chat with strangers and find new people to talk to. It features user authentication, profile management, and real-time chat functionality.
 
 ## Features
 
-- **User Authentication**: Users can sign up and sign in using email and password.
-- **Profile Management**: Users can create and edit profiles, including uploading a profile picture.
-- **Tweet Posting**: Users can post tweets.
-- **Tweet Liking**: Users can like tweets.
-- **Real-time Updates**: Tweets and likes are updated in real-time using Firebase Realtime Database.
+- **Sign Up & Sign In**: Users can create an account or log in using email/password or Google authentication.
+- **Profile Management**: Users can upload a profile picture and manage their profile.
+- **Real-Time Chat**: Users can chat with strangers in real-time and find new people to connect with.
+- **Password Reset**: Users can request a password reset via email.
 
 ## Technologies Used
 
-- **HTML5 & CSS3**: For structure and styling.
-- **JavaScript (ES6 Modules)**: For handling front-end logic.
-- **Firebase**: 
-  - **Firebase Authentication**: For user sign-up/sign-in.
-  - **Firebase Realtime Database**: For storing tweets and user data.
-  - **Firebase Storage**: For storing profile pictures.
+- **Firebase**: For authentication, database, and storage.
+- **HTML/CSS**: For building the user interface.
+- **JavaScript**: For app functionality and real-time operations.
 
-## Setup Instructions
+## Setup
 
-### 1. Clone the Repository
+### 1. Firebase Configuration
 
-```bash
-git clone https://github.com/your-username/twitter-clone.git
-cd twitter-clone
-```
-
-### 2. Set Up Firebase
-
-- Go to [Firebase Console](https://console.firebase.google.com/) and create a new project.
-- Enable **Firebase Authentication** (Email/Password provider).
-- Enable **Firebase Realtime Database**.
-- Enable **Firebase Storage**.
-- Obtain your Firebase configuration object from the Firebase console under **Project Settings**.
-
-### 3. Configure Firebase in the Project
-
-- Open the `auth.js` and `app.js` files.
-- Replace the Firebase configuration object with your project's details:
+Replace the placeholders in `auth.js` with your actual Firebase project configuration:
 
 ```javascript
+// Initialize Firebase
 const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_AUTH_DOMAIN",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_STORAGE_BUCKET",
-    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-    appId: "YOUR_APP_ID"
+    apiKey: "YOUR_API_KEY", // Replace with your actual API key
+    authDomain: "YOUR_AUTH_DOMAIN", // Replace with your Firebase Auth domain
+    projectId: "YOUR_PROJECT_ID", // Replace with your Firebase project ID
+    storageBucket: "YOUR_STORAGE_BUCKET", // Replace with your Firebase storage bucket
+    messagingSenderId: "YOUR_MESSAGING_SENDER_ID", // Replace with your Firebase messaging sender ID
+    appId: "YOUR_APP_ID" // Replace with your Firebase app ID
 };
 ```
 
-### 4. Serve the Application
+### 2. Install Dependencies
 
-Use a local server to serve the files. For example, using `live-server`:
+Make sure to include the Firebase SDKs in your project. Your `auth.js` script imports these SDKs from the CDN.
 
-```bash
-npm install -g live-server
-live-server
+### 3. HTML Structure
+
+Ensure your `index.html` or other HTML files are set up correctly. An example is provided:
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="chat.css">
+    <title>Find a Guest | Chat</title>
+</head>
+<body>
+    <div id="header">
+        <div id="header-left">
+            <img src="img/logo.png" alt="Logo" id="logo">
+            <span id="active-users">Active Users: <span id="active-user-count">0</span></span>
+        </div>
+        <div id="header-right">
+            <span id="local-time"></span>
+        </div>
+    </div>
+    <div id="status">Keep In mind You are chatting with stranger, Talk more respectfully!</div>
+    <div id="chat-container">
+        <div id="chat-box"></div>
+        <div id="typing-indicator"></div>
+    </div>
+    <div id="chat-input-container">
+        <input type="text" id="chat-input" placeholder="You: Type a message...">
+        <button id="send-btn">Send</button>
+    </div>
+    <div id="controls">
+        <button id="new-chat-btn">Find New One To Chat</button>
+        <button id="skip-btn">Leave The Chat</button>
+    </div>
+    <script type="module" src="chat.js"></script>
+    <footer>
+        <p class="ptext"> &copy; 2024 findaguest.online | by Dineth Gunawardana</p>
+    </footer>
+</body>
+</html>
 ```
 
-Open your browser and navigate to `http://localhost:8080/signup.html` to start using the app.
+## Usage
 
-### 5. Deploying to GitHub Pages (Optional)
+### Authentication
 
-- Ensure all files are committed and pushed to your GitHub repository.
-- Go to the repository settings on GitHub.
-- Under "GitHub Pages", choose the branch and folder (e.g., `main` branch and `/` root folder) to deploy.
-- Your application will be available at `https://your-username.github.io/twitter-clone`.
+- **Sign Up**: Users can sign up with email/password or Google. Profile picture and username are required for Google sign-ups.
+- **Sign In**: Users can log in with email/password or username (if registered).
 
-## How to Use
+### Chat Functionality
 
-1. **Sign Up**: 
-   - Go to the sign-up page (`signup.html`).
-   - Enter your full name, birthday, email, and password.
-   - Click "Sign Up" to create your account.
-   
-2. **Sign In**: 
-   - Go to the sign-in page (`signup.html`).
-   - Enter your email and password.
-   - Click "Sign In" to log in to your account.
+- **Start New Chat**: Click "Find New One To Chat" to connect with a new stranger.
+- **Skip Chat**: Click "Leave The Chat" to disconnect and find a new chat partner.
 
-3. **Post a Tweet**:
-   - Once signed in, you can post tweets from the main page (`index.html`).
-   - Enter your tweet content and click "Tweet".
+### Password Reset
 
-4. **Upload Profile Picture**:
-   - In the profile section on the main page (`index.html`), choose a picture (max 2MB) and click "Upload Profile Picture".
-   
-5. **Like a Tweet**:
-   - Click on a tweet in the list to like it.
+- **Forgot Password**: Click the "Forgot Password" link to request a password reset email.
 
-6. **Logout**:
-   - Click the "Logout" button to sign out.
+## Running the Project
+
+1. Ensure you have a local server running to serve your HTML files. You can use tools like [Live Server](https://marketplace.visualstudio.com/items?itemName=ritwickdey.live-server) in Visual Studio Code.
+2. Open the `index.html` file in your browser.
 
 ## Contributing
 
-Contributions are welcome! Please fork the repository and use a feature branch. Pull requests are accepted.
+Feel free to submit issues or pull requests if you find any bugs or have suggestions for improvements!
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
-## Contact
+---
 
-If you have any questions, feel free to reach out to me at [your-email@example.com].
+**Find a Guest** | 2024 by Dineth Gunawardana
 ```
-
-### Notes:
-Here's a `README.md` file you can use for your GitHub repository. This file explains the project, how to set it up, and how to use it.
-
-```markdown
-# Twitter Clone with Firebase
-
-This is a simple Twitter clone built using Firebase for authentication, database management, and storage. Users can sign up, sign in, post tweets, like tweets, and manage their profiles (including uploading profile pictures).
-
-## Features
-
-- **User Authentication**: Users can sign up and sign in using email and password.
-- **Profile Management**: Users can create and edit profiles, including uploading a profile picture.
-- **Tweet Posting**: Users can post tweets.
-- **Tweet Liking**: Users can like tweets.
-- **Real-time Updates**: Tweets and likes are updated in real-time using Firebase Realtime Database.
-
-## Technologies Used
-
-- **HTML5 & CSS3**: For structure and styling.
-- **JavaScript (ES6 Modules)**: For handling front-end logic.
-- **Firebase**: 
-  - **Firebase Authentication**: For user sign-up/sign-in.
-  - **Firebase Realtime Database**: For storing tweets and user data.
-  - **Firebase Storage**: For storing profile pictures.
-
-## Setup Instructions
-
-### 1. Clone the Repository
-
-```bash
-git clone https://github.com/your-username/twitter-clone.git
-cd twitter-clone
-```
-
-### 2. Set Up Firebase
-
-- Go to [Firebase Console](https://console.firebase.google.com/) and create a new project.
-- Enable **Firebase Authentication** (Email/Password provider).
-- Enable **Firebase Realtime Database**.
-- Enable **Firebase Storage**.
-- Obtain your Firebase configuration object from the Firebase console under **Project Settings**.
-
-### 3. Configure Firebase in the Project
-
-- Open the `auth.js` and `app.js` files.
-- Replace the Firebase configuration object with your project's details:
-
-```javascript
-const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_AUTH_DOMAIN",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_STORAGE_BUCKET",
-    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-    appId: "YOUR_APP_ID"
-};
-```
-
-### 4. Serve the Application
-
-Use a local server to serve the files. For example, using `live-server`:
-
-```bash
-npm install -g live-server
-live-server
-```
-
-Open your browser and navigate to `http://localhost:8080/signup.html` to start using the app.
-
-### 5. Deploying to GitHub Pages (Optional)
-
-- Ensure all files are committed and pushed to your GitHub repository.
-- Go to the repository settings on GitHub.
-- Under "GitHub Pages", choose the branch and folder (e.g., `main` branch and `/` root folder) to deploy.
-- Your application will be available at `https://your-username.github.io/twitter-clone`.
-
-## How to Use
-
-1. **Sign Up**: 
-   - Go to the sign-up page (`signup.html`).
-   - Enter your full name, birthday, email, and password.
-   - Click "Sign Up" to create your account.
-   
-2. **Sign In**: 
-   - Go to the sign-in page (`signup.html`).
-   - Enter your email and password.
-   - Click "Sign In" to log in to your account.
-
-3. **Post a Tweet**:
-   - Once signed in, you can post tweets from the main page (`index.html`).
-   - Enter your tweet content and click "Tweet".
-
-4. **Upload Profile Picture**:
-   - In the profile section on the main page (`index.html`), choose a picture (max 2MB) and click "Upload Profile Picture".
-   
-5. **Like a Tweet**:
-   - Click on a tweet in the list to like it.
-
-6. **Logout**:
-   - Click the "Logout" button to sign out.
-
-## Contributing
-
-Contributions are welcome! Please fork the repository and use a feature branch. Pull requests are accepted.
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Contact
-
-If you have any questions, feel free to reach out to me at [infodinethdil@icloud.com].
-```
-
-### Notes:
-- Make sure to replace placeholders such as `your-username`, `YOUR_API_KEY`, and `your-email@example.com` with your actual GitHub username, Firebase configuration details, and contact information before uploading the `README.md` to your repository.
-- Consider adding any additional setup or usage instructions specific to your project.
